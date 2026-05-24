@@ -231,6 +231,247 @@
 
   /* CONTENT */
   .content { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  .app-layout { display: flex; align-items: flex-start; gap: 0; }
+  .main-area { flex: 1; min-width: 0; }
+  .news-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    background: var(--white);
+    border-left: 2px solid var(--ink);
+    height: calc(100vh - 64px - 49px);
+    position: sticky;
+    top: calc(64px + 49px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-topbar {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .sidebar-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #e74c3c;
+  }
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    background: #e74c3c;
+    border-radius: 50%;
+    animation: livepulse 1.2s infinite;
+  }
+  @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--paper2);
+  }
+  .sidebar-tab {
+    flex: 1;
+    padding: 0.5rem 0.3rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    text-align: center;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    background: none;
+    font-family: 'Manrope', sans-serif;
+    transition: all 0.15s;
+  }
+  .sidebar-tab.active { color: var(--red); border-bottom-color: var(--red); }
+  .sidebar-tab:hover { color: var(--ink); }
+  .news-list { flex: 1; overflow-y: auto; }
+  .news-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .news-item:hover { background: var(--paper2); }
+  .news-item.active { background: var(--paper2); border-left: 3px solid var(--red); padding-left: calc(1rem - 3px + 2px); }
+  .news-item.urgent { border-left: 3px solid var(--red-soft); padding-left: calc(1rem - 1px); }
+  .news-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+    flex-wrap: wrap;
+  }
+  .src-badge {
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .src-trt { background: #dbeafe; color: #1e40af; }
+  .src-aa  { background: #dcfce7; color: #166534; }
+  .src-reuters { background: #fef3c7; color: #92400e; }
+  .urgent-pill {
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    background: #fee2e2;
+    color: #991b1b;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .news-time {
+    font-size: 0.55rem;
+    color: var(--muted);
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .news-headline {
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .news-snippet {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sidebar-detail {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+  }
+  .sidebar-detail.show { display: flex; }
+  .detail-back {
+    padding: 0.5rem 1rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper2);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+  .detail-back:hover { color: var(--ink); }
+  .detail-scroll { flex: 1; overflow-y: auto; padding: 1rem; }
+  .detail-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+  .detail-meta {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    margin-top: 0.75rem;
+  }
+  .detail-ru-text {
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .detail-preparing {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 1rem 0;
+  }
+  .detail-actions {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .btn-publish {
+    width: 100%;
+    padding: 0.7rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--gold);
+    transition: all 0.15s;
+  }
+  .btn-publish:hover { background: var(--green); }
+  .sidebar-status {
+    padding: 0.4rem 1rem;
+    background: var(--paper2);
+    border-top: 1px solid var(--border);
+    font-size: 0.6rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .status-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; }
+  .sidebar-loading {
+    padding: 2rem 1rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .sidebar-error {
+    padding: 1rem;
+    font-size: 0.75rem;
+    color: var(--red);
+    text-align: center;
+  }
+  @media (max-width: 900px) {
+    .news-sidebar { display: none; }
+  }
 
   .panel { display: none; }
   .panel.active { display: block; }
@@ -614,6 +855,8 @@
     <button class="nav-tab" onclick="switchTab('social', this)">📲 Соцсети</button>
   </nav>
 
+  <div class="app-layout">
+  <div class="main-area">
   <div class="content">
 
     <!-- ══ PANEL 1: НАПИСАТЬ ══ -->
@@ -797,6 +1040,45 @@
     </div>
 
   </div><!-- /content -->
+  </div><!-- /main-area -->
+
+  <!-- NEWS SIDEBAR -->
+  <div class="news-sidebar" id="news-sidebar">
+    <div class="sidebar-topbar">
+      <div class="sidebar-title">📡 Haber Asistanı</div>
+      <div class="live-badge"><div class="live-dot"></div>CANLI</div>
+    </div>
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" id="stab-urgent" onclick="switchSTab('urgent')">Acil</button>
+      <button class="sidebar-tab" id="stab-daily" onclick="switchSTab('daily')">Günlük</button>
+      <button class="sidebar-tab" id="stab-feature" onclick="switchSTab('feature')">Feature</button>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="news-list-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="news-list" id="news-list">
+        <div class="sidebar-loading">
+          <div class="spinner"></div>
+          <span>Haberler yükleniyor...</span>
+        </div>
+      </div>
+      <div class="sidebar-status">
+        <div class="status-dot"></div>
+        <span id="sidebar-status-text">Bağlanıyor...</span>
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div id="news-detail-view" class="sidebar-detail">
+      <div class="detail-back" onclick="showNewsList()">← Geri</div>
+      <div class="detail-scroll" id="detail-scroll"></div>
+      <div class="detail-actions">
+        <button class="btn-publish" onclick="copyDetailText()">Metni Kopyala →</button>
+      </div>
+    </div>
+  </div><!-- /news-sidebar -->
+
+</div><!-- /app-layout -->
 </div><!-- /app -->
 
 <div class="toast" id="toast">Скопировано ✓</div>
@@ -1354,11 +1636,155 @@ function setLang(lang) {
   });
 }
 
+
+// ════════════════════════════════
+// HABER ASİSTANI / NEWS ASSISTANT
+// ════════════════════════════════
+let allNewsItems = [];
+let currentSTab = 'urgent';
+let currentDetailItem = null;
+let newsRefreshTimer = null;
+
+function switchSTab(tab) {
+  currentSTab = tab;
+  ['urgent','daily','feature'].forEach(t => {
+    document.getElementById('stab-' + t).classList.toggle('active', t === tab);
+  });
+  renderNewsList();
+}
+
+function showNewsList() {
+  document.getElementById('news-list-view').style.display = 'flex';
+  document.getElementById('news-detail-view').classList.remove('show');
+}
+
+function showNewsDetail(item) {
+  currentDetailItem = item;
+  document.getElementById('news-list-view').style.display = 'none';
+  document.getElementById('news-detail-view').classList.add('show');
+
+  const scroll = document.getElementById('detail-scroll');
+  const srcClass = item.sourceId === 'trt' ? 'src-trt' : item.sourceId === 'aa' ? 'src-aa' : 'src-reuters';
+  const timeStr = item.pubDate ? new Date(item.timestamp).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+  const dateStr = item.pubDate ? new Date(item.timestamp).toLocaleDateString('tr-TR') : '';
+
+  scroll.innerHTML = '<div class="news-meta-row" style="margin-bottom:0.5rem">'
+    + '<span class="src-badge ' + srcClass + '">' + item.source + '</span>'
+    + (item.isUrgent ? '<span class="urgent-pill">Acil</span>' : '')
+    + '<span class="news-time">' + dateStr + ' ' + timeStr + '</span>'
+    + '</div>'
+    + '<div class="detail-headline">' + item.title + '</div>'
+    + '<div class="detail-meta">' + item.description + '</div>'
+    + '<div class="detail-label">Hazırlanan Rusça Metin</div>'
+    + '<div class="detail-ru-text" id="detail-ru-content">'
+    + '<div class="detail-preparing"><div class="spinner"></div> KutAI hazırlıyor...</div>'
+    + '</div>';
+
+  if (item.preparedRu) {
+    document.getElementById('detail-ru-content').textContent = item.preparedRu;
+  } else {
+    prepareRussianText(item);
+  }
+}
+
+async function prepareRussianText(item) {
+  const prompt = 'Переведи и адаптируй эту новость для TRT Russian по всем редакционным стандартам.\n\n'
+    + 'ЗАГОЛОВОК ОРИГИНАЛА: ' + item.title + '\n'
+    + 'ОПИСАНИЕ: ' + item.description + '\n'
+    + 'ИСТОЧНИК: ' + item.source + '\n\n'
+    + 'Структура ответа:\n'
+    + 'ЗАГОЛОВОК: [заголовок по-русски]\n'
+    + 'ПОДЗАГОЛОВОК: [подзаголовок]\n'
+    + 'ТЕКСТ:\n[3-5 абзацев готового материала]';
+
+  try {
+    const result = await callKutAI(prompt, 800);
+    item.preparedRu = result;
+    const el = document.getElementById('detail-ru-content');
+    if (el) el.textContent = result;
+  } catch(e) {
+    const el = document.getElementById('detail-ru-content');
+    if (el) el.textContent = 'Ошибка подготовки: ' + e.message;
+  }
+}
+
+function copyDetailText() {
+  const el = document.getElementById('detail-ru-content');
+  if (!el) return;
+  const text = el.textContent;
+  if (text.includes('KutAI hazırlıyor') || text.includes('Ошибка')) return;
+  navigator.clipboard.writeText(text).then(() => showToast());
+}
+
+function renderNewsList() {
+  const list = document.getElementById('news-list');
+  let items = allNewsItems;
+
+  if (currentSTab === 'urgent') {
+    items = allNewsItems.filter(i => i.isUrgent);
+  } else if (currentSTab === 'daily') {
+    items = allNewsItems.filter(i => !i.isUrgent);
+  } else if (currentSTab === 'feature') {
+    list.innerHTML = '<div style="padding:1rem;font-size:0.75rem;color:var(--muted);text-align:center">Feature önerileri yakında...</div>';
+    return;
+  }
+
+  if (items.length === 0) {
+    list.innerHTML = '<div style="padding:1.5rem 1rem;font-size:0.75rem;color:var(--muted);text-align:center">'
+      + (currentSTab === 'urgent' ? 'Şu an acil haber yok.' : 'Haber bulunamadı.') + '</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    const srcClass = item.sourceId === 'trt' ? 'src-trt' : item.sourceId === 'aa' ? 'src-aa' : 'src-reuters';
+    const timeStr = item.pubDate ? new Date(item.timestamp).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+    return '<div class="news-item' + (item.isUrgent ? ' urgent' : '') + '" onclick="showNewsDetail(' + JSON.stringify(item).replace(/"/g, '&quot;') + ')">'
+      + '<div class="news-meta-row">'
+      + '<span class="src-badge ' + srcClass + '">' + item.source + '</span>'
+      + (item.isUrgent ? '<span class="urgent-pill">Acil</span>' : '')
+      + '<span class="news-time">' + timeStr + '</span>'
+      + '</div>'
+      + '<div class="news-headline">' + item.title + '</div>'
+      + (item.description ? '<div class="news-snippet">' + item.description + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+async function fetchNews() {
+  try {
+    const res = await fetch('/.netlify/functions/news');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    allNewsItems = data.items || [];
+
+    const urgentCount = allNewsItems.filter(i => i.isUrgent).length;
+    const fetchTime = new Date(data.fetchedAt).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('sidebar-status-text').textContent =
+      urgentCount + ' acil · ' + allNewsItems.length + ' haber · ' + fetchTime;
+
+    renderNewsList();
+
+    // Update urgent tab badge
+    document.getElementById('stab-urgent').textContent = 'Acil' + (urgentCount > 0 ? ' (' + urgentCount + ')' : '');
+
+  } catch(e) {
+    document.getElementById('news-list').innerHTML =
+      '<div class="sidebar-error">Haberler yüklenemedi.<br><small>' + e.message + '</small></div>';
+    document.getElementById('sidebar-status-text').textContent = 'Bağlantı hatası';
+  }
+}
+
+function startNewsRefresh() {
+  fetchNews();
+  newsRefreshTimer = setInterval(fetchNews, 5 * 60 * 1000); // 5 dakikada bir
+}
+
 // INIT
 setupCharCounter('write-brief', 'write-char', 2000);
 setupCharCounter('eval-text', 'eval-char', 6000);
 // AUTH DISABLED FOR TESTING — re-enable by replacing showApp('test@kutai.app') with checkAuth()
 showApp('test@kutai.app');
+startNewsRefresh();
 </script>
 </body>
 </html>
