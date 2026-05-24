@@ -809,7 +809,8 @@
 emailjs.init("VmCtNOVj83UjISimq");
 
 const ALLOWED_EMAILS = [
-  ""nkenzhetay@gmail.com",",
+  "nkenzhetay@trt.net.tr",
+  "trtrussian@trt.net.tr"
   // Buraya izinli emailler eklenecek
 ];
 
@@ -849,7 +850,7 @@ function sendOTP() {
   emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
     to_email: email,
     otp_code: currentOTP,
-    product_name: 'KutAI'
+    message: `Ваш код для входа в KutAI: ${currentOTP}`
   }).then(() => {
     showMsg(msg, `Код отправлен на ${email}`, '');
     document.getElementById('step-email').classList.remove('active');
