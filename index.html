@@ -1231,6 +1231,28 @@ const T = {
     social_btn: 'Создать посты →',
     social_result: 'Готовые посты',
     toast: 'Скопировано ✓',
+    lbl_format: 'Формат материала',
+    lbl_category: 'Категория',
+    lbl_brief: 'Краткое описание темы / бриф',
+    lbl_extra: 'Дополнительные факты или цитаты (необязательно)',
+    ph_brief: 'Например: Израиль нанёс удар по больнице в Газе. 40 погибших. Турция осудила...',
+    ph_extra: 'Цитата официального лица, статистика, ссылка на источник...',
+    lbl_news: 'О чём новость?',
+    ph_news: 'Например: Израильские военные задержали участников флотилии «Сумуд»...',
+    lbl_tone: 'Тональность',
+    lbl_eval_text: 'Текст для проверки',
+    ph_eval: 'Вставьте готовый материал фрилансера или свой черновик...',
+    lbl_social_text: 'Тема или готовый материал',
+    ph_social: 'Вставьте краткое описание темы или готовую статью...',
+    lbl_platform: 'Платформа',
+    loading_write: 'Редактор думает...',
+    loading_hl: 'Подбираем заголовки...',
+    loading_eval: 'Редактор читает...',
+    loading_social: 'Готовим посты...',
+    formats: ['Новость (3–5 абзацев)', 'Аналитика (700–1000 слов)', 'Мнение / колонка'],
+    tones: ['Авто (KutAI выбирает)', 'Меrak bırak — интрига', 'Sonucu ver — результат', 'Şok et — шок'],
+    platforms: ['X + Telegram (оба)', 'X (Twitter) — до 280 символов', 'Telegram — развёрнуто'],
+    categories: ['Политика', 'Война в Газе', 'Война в Украине', 'Турция', 'Тюркский мир', 'Иран', 'Сирия', 'Африка', 'Оборонная промышленность', 'Экономика', 'Особый материал'],
   },
   tr: {
     logout: 'Çıkış',
@@ -1255,6 +1277,28 @@ const T = {
     social_btn: 'Post Oluştur →',
     social_result: 'Hazır Postlar',
     toast: 'Kopyalandı ✓',
+    lbl_format: 'Materyal Formatı',
+    lbl_category: 'Kategori',
+    lbl_brief: 'Konu özeti / brief',
+    lbl_extra: 'Ek bilgi veya alıntılar (isteğe bağlı)',
+    ph_brief: 'Örnek: İsrail Gazze'deki hastaneye saldırdı. 40 ölü. Türkiye kınadı...',
+    ph_extra: 'Yetkili açıklaması, istatistik, kaynak bağlantısı...',
+    lbl_news: 'Haber ne hakkında?',
+    ph_news: 'Örnek: İsrail ordusu Sümud filosunu uluslararası sularda durdurdu...',
+    lbl_tone: 'Ton',
+    lbl_eval_text: 'Kontrol edilecek metin',
+    ph_eval: 'Serbest çalışanın metnini veya taslağınızı yapıştırın...',
+    lbl_social_text: 'Konu veya hazır makale',
+    ph_social: 'Konu özetini veya makaleyi yapıştırın...',
+    lbl_platform: 'Platform',
+    loading_write: 'Editör düşünüyor...',
+    loading_hl: 'Başlıklar hazırlanıyor...',
+    loading_eval: 'Editör okuyor...',
+    loading_social: 'Postlar hazırlanıyor...',
+    formats: ['Haber (3–5 paragraf)', 'Analiz (700–1000 kelime)', 'Yorum / Köşe'],
+    tones: ['Otomatik (KutAI seçer)', 'Merak bırak — merak', 'Sonucu ver — sonuç', 'Şok et — şok'],
+    platforms: ['X + Telegram (ikisi)', 'X (Twitter) — maks 280 karakter', 'Telegram — genişletilmiş'],
+    categories: ['Politika', 'Gazze Savaşı', 'Ukrayna Savaşı', 'Türkiye', 'Türk Dünyası', 'İran', 'Suriye', 'Afrika', 'Savunma Sanayii', 'Ekonomi', 'Özel Materyal'],
   }
 };
 
@@ -1301,6 +1345,57 @@ function setLang(lang) {
 
   // Toast
   document.getElementById('toast').textContent = L.toast;
+
+  // Labels
+  const wLabels = document.querySelectorAll('#panel-write label');
+  if (wLabels[0]) wLabels[0].textContent = L.lbl_format;
+  if (wLabels[1]) wLabels[1].textContent = L.lbl_category;
+  if (wLabels[2]) wLabels[2].textContent = L.lbl_brief;
+  if (wLabels[3]) wLabels[3].textContent = L.lbl_extra;
+
+  const hlLabels = document.querySelectorAll('#panel-headlines label');
+  if (hlLabels[0]) hlLabels[0].textContent = L.lbl_news;
+  if (hlLabels[1]) hlLabels[1].textContent = L.lbl_tone;
+  if (hlLabels[2]) hlLabels[2].textContent = L.lbl_category;
+
+  const evLabel = document.querySelector('#panel-evaluate label');
+  if (evLabel) evLabel.textContent = L.lbl_eval_text;
+
+  const sLabels = document.querySelectorAll('#panel-social label');
+  if (sLabels[0]) sLabels[0].textContent = L.lbl_social_text;
+  if (sLabels[1]) sLabels[1].textContent = L.lbl_platform;
+  if (sLabels[2]) sLabels[2].textContent = L.lbl_category;
+
+  // Placeholders
+  document.getElementById('write-brief').placeholder = L.ph_brief;
+  document.getElementById('write-extra').placeholder = L.ph_extra;
+  document.getElementById('hl-brief').placeholder = L.ph_news;
+  document.getElementById('eval-text').placeholder = L.ph_eval;
+  document.getElementById('social-text').placeholder = L.ph_social;
+
+  // Loading texts
+  document.querySelector('#write-loading').innerHTML = '<div class="spinner"></div> ' + L.loading_write;
+  document.querySelector('#hl-loading').innerHTML = '<div class="spinner"></div> ' + L.loading_hl;
+  document.querySelector('#eval-loading').innerHTML = '<div class="spinner"></div> ' + L.loading_eval;
+  document.querySelector('#social-loading').innerHTML = '<div class="spinner"></div> ' + L.loading_social;
+
+  // Select options - Format
+  const wf = document.getElementById('write-format');
+  Array.from(wf.options).forEach((o, i) => { if (L.formats[i]) o.textContent = L.formats[i]; });
+
+  // Select options - Tone
+  const ht = document.getElementById('hl-tone');
+  Array.from(ht.options).forEach((o, i) => { if (L.tones[i]) o.textContent = L.tones[i]; });
+
+  // Select options - Platform
+  const sp = document.getElementById('social-platform');
+  Array.from(sp.options).forEach((o, i) => { if (L.platforms[i]) o.textContent = L.platforms[i]; });
+
+  // Select options - Categories (all 3 category selects)
+  ['write-category', 'hl-category', 'social-category'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) Array.from(sel.options).forEach((o, i) => { if (L.categories[i]) o.textContent = L.categories[i]; });
+  });
 }
 
 // INIT
