@@ -1470,6 +1470,9 @@ const T = {
     social_result: 'Готовые посты',
     toast: 'Скопировано ✓',
     sidebar_title: '📡 Новостной ассистент',
+    stab_urgent: 'Срочно',
+    stab_daily: 'Дневные',
+    stab_feature: 'Материал',
     lbl_format: 'Формат материала',
     lbl_category: 'Категория',
     lbl_brief: 'Краткое описание темы / бриф',
@@ -1517,6 +1520,9 @@ const T = {
     social_result: 'Hazır Postlar',
     toast: 'Kopyalandı ✓',
     sidebar_title: '📡 Haber Asistanı',
+    stab_urgent: 'Acil',
+    stab_daily: 'Günlük',
+    stab_feature: 'Feature',
     lbl_format: 'Materyal Formatı',
     lbl_category: 'Kategori',
     lbl_brief: 'Konu ozeti / brief',
@@ -1589,6 +1595,15 @@ function setLang(lang) {
   // Sidebar
   const st = document.getElementById('sidebar-title');
   if (st && L.sidebar_title) st.textContent = L.sidebar_title;
+
+  // Sidebar tabs
+  const su = document.getElementById('stab-urgent');
+  const sd = document.getElementById('stab-daily');
+  const sf = document.getElementById('stab-feature');
+  const urgentCount = allNewsItems.filter(i => i.isUrgent).length;
+  if (su) su.textContent = L.stab_urgent + (urgentCount > 0 ? ' (' + urgentCount + ')' : '');
+  if (sd) sd.textContent = L.stab_daily;
+  if (sf) sf.textContent = L.stab_feature;
 
   // Labels
   const wLabels = document.querySelectorAll('#panel-write label');
