@@ -1045,7 +1045,7 @@
   <!-- NEWS SIDEBAR -->
   <div class="news-sidebar" id="news-sidebar">
     <div class="sidebar-topbar">
-      <div class="sidebar-title">📡 Haber Asistanı</div>
+      <div class="sidebar-title" id="sidebar-title">📡 Новостной ассистент</div>
       <div class="live-badge"><div class="live-dot"></div>CANLI</div>
     </div>
     <div class="sidebar-tabs">
@@ -1469,6 +1469,7 @@ const T = {
     social_btn: 'Создать посты →',
     social_result: 'Готовые посты',
     toast: 'Скопировано ✓',
+    sidebar_title: '📡 Новостной ассистент',
     lbl_format: 'Формат материала',
     lbl_category: 'Категория',
     lbl_brief: 'Краткое описание темы / бриф',
@@ -1515,6 +1516,7 @@ const T = {
     social_btn: 'Post Oluştur →',
     social_result: 'Hazır Postlar',
     toast: 'Kopyalandı ✓',
+    sidebar_title: '📡 Haber Asistanı',
     lbl_format: 'Materyal Formatı',
     lbl_category: 'Kategori',
     lbl_brief: 'Konu ozeti / brief',
@@ -1583,6 +1585,10 @@ function setLang(lang) {
 
   // Toast
   document.getElementById('toast').textContent = L.toast;
+
+  // Sidebar
+  const st = document.getElementById('sidebar-title');
+  if (st && L.sidebar_title) st.textContent = L.sidebar_title;
 
   // Labels
   const wLabels = document.querySelectorAll('#panel-write label');
@@ -1673,7 +1679,7 @@ function showNewsDetail(item) {
     + (item.isUrgent ? '<span class="urgent-pill">Acil</span>' : '')
     + '<span class="news-time">' + dateStr + ' ' + timeStr + '</span>'
     + '</div>'
-    + '<div class="detail-headline">' + item.title + '</div>'
+    + '<div class="detail-headline">' + (item.titleRu || item.title) + '</div>'
     + '<div class="detail-meta">' + item.description + '</div>'
     + '<div class="detail-label">Hazırlanan Rusça Metin</div>'
     + '<div class="detail-ru-text" id="detail-ru-content">'
@@ -1744,10 +1750,32 @@ function renderNewsList() {
       + (item.isUrgent ? '<span class="urgent-pill">Acil</span>' : '')
       + '<span class="news-time">' + timeStr + '</span>'
       + '</div>'
-      + '<div class="news-headline">' + item.title + '</div>'
+      + '<div class="news-headline">' + (item.titleRu || item.title) + '</div>'
       + (item.description ? '<div class="news-snippet">' + item.description + '</div>' : '')
       + '</div>';
   }).join('');
+}
+
+async function translateHeadlines(items) {
+  if (!items || items.length === 0) return items;
+  const titles = items.map((item, i) => (i+1) + '. ' + item.title).join('\n');
+  const prompt = 'Переведи следующие заголовки новостей на русский язык. '
+    + 'Сохраняй точность и журналистский стиль. '
+    + 'Верни только пронумерованный список переводов, без пояснений:\n\n' + titles;
+  try {
+    const result = await callKutAI(prompt, 1000);
+    const lines = result.split('\n').filter(l => l.trim());
+    lines.forEach(line => {
+      const match = line.match(/^(\d+)[\.\)\:]\s*(.+)/);
+      if (match) {
+        const idx = parseInt(match[1]) - 1;
+        if (items[idx]) items[idx].titleRu = match[2].trim();
+      }
+    });
+  } catch(e) {
+    console.log('Translation error:', e.message);
+  }
+  return items;
 }
 
 async function fetchNews() {
@@ -1756,6 +1784,11 @@ async function fetchNews() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     allNewsItems = data.items || [];
+    renderNewsList(); // show English first immediately
+    translateHeadlines(allNewsItems).then(() => renderNewsList()); // then re-render with Russian
+
+    renderNewsList();
+    translateHeadlines(allNewsItems).then(() => renderNewsList());
 
     const urgentCount = allNewsItems.filter(i => i.isUrgent).length;
     const fetchTime = new Date(data.fetchedAt).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
