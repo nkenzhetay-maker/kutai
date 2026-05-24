@@ -814,14 +814,14 @@ const ALLOWED_EMAILS = [
   // Buraya izinli emailler eklenecek
 ];
 
-const EMAILJS_SERVICE = "YOUR_SERVICE_ID";
-const EMAILJS_TEMPLATE = "YOUR_TEMPLATE_ID";
+const EMAILJS_SERVICE = "service_mdtv5k8" ;
+const EMAILJS_TEMPLATE = "template_lavno6l";
 
 let currentOTP = null;
 let currentEmail = null;
 
 // ════════════════════════════════
-// AUTH
+ emailjs.init("VmCtNOVj83UjISimq");
 // ════════════════════════════════
 function checkAuth() {
   const token = localStorage.getItem('kutai_token');
@@ -830,8 +830,8 @@ function checkAuth() {
   if (token && email && expiry && Date.now() < parseInt(expiry)) {
     showApp(email);
     return true;
-  }
-  return false;
+  } 
+  return false; 
 }
 
 function sendOTP() {
