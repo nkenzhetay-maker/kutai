@@ -169,6 +169,13 @@
 
   .header-logo span { color: var(--gold-light); }
 
+
+  /* LANG SWITCHER */
+  .lang-switcher { display:flex; border:1.5px solid rgba(245,240,232,0.3); overflow:hidden; margin-left:0.5rem; }
+  .lang-btn { background:none; border:none; color:rgba(245,240,232,0.5); padding:0.3rem 0.75rem; font-size:0.65rem; font-weight:700; letter-spacing:0.1em; cursor:pointer; font-family:'Manrope',sans-serif; transition:all 0.15s; }
+  .lang-btn:hover { color:var(--paper); background:rgba(255,255,255,0.1); }
+  .lang-btn.active { background:rgba(255,255,255,0.18); color:var(--paper); }
+
   .header-user {
     font-size: 0.72rem;
     color: rgba(245,240,232,0.6);
@@ -592,6 +599,10 @@
     <div class="header-logo">Kut<span>AI</span></div>
     <div style="display:flex;align-items:center;gap:1rem">
       <div class="header-user" id="header-user"></div>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" id="lang-tr" onclick="setLang('tr')">TR</button>
+      </div>
       <button class="header-logout" id="btn-logout" onclick="logout()">Выйти</button>
     </div>
   </header>
@@ -1191,6 +1202,106 @@ document.addEventListener('keydown', e => {
 
 
 
+
+
+// ════════════════════════════════
+// DİL SİSTEMİ / LANGUAGE SYSTEM
+// ════════════════════════════════
+const T = {
+  ru: {
+    logout: 'Выйти',
+    nav: ['✍️ Написать', '📰 Заголовки', '🔍 Проверить текст', '📲 Соцсети'],
+    write_title: 'Написать материал',
+    write_desc: 'Опишите тему — KutAI напишет готовый материал в стиле TRT Russian.',
+    write_btn: 'Написать материал →',
+    write_result: 'Готовый материал',
+    copy: 'Скопировать',
+    hl_title: 'Генератор заголовков',
+    hl_desc: 'KutAI предложит 3 варианта заголовка. Нажмите на карточку, чтобы скопировать.',
+    hl_btn: 'Сгенерировать заголовки →',
+    hl_result: 'Варианты заголовков',
+    eval_title: 'Проверка текста',
+    eval_desc: 'KutAI проверит материал по стандартам TRT Russian: терминология, позиция Турции, грамматика, стиль.',
+    eval_btn: 'Проверить текст →',
+    eval_result: 'Заключение редактора',
+    eval_corrected: 'Исправленный вариант',
+    eval_copy: 'Скопировать исправленный текст',
+    social_title: 'Текст для соцсетей',
+    social_desc: 'Адаптация материала под X (Twitter) и Telegram в формате TRT Russian.',
+    social_btn: 'Создать посты →',
+    social_result: 'Готовые посты',
+    toast: 'Скопировано ✓',
+  },
+  tr: {
+    logout: 'Çıkış',
+    nav: ['✍️ Yaz', '📰 Başlıklar', '🔍 Metin Kontrol', '📲 Sosyal Medya'],
+    write_title: 'Materyal Yaz',
+    write_desc: 'Konuyu açıklayın — KutAI TRT Russian stilinde hazır materyal yazar.',
+    write_btn: 'Materyal Yaz →',
+    write_result: 'Hazır Materyal',
+    copy: 'Kopyala',
+    hl_title: 'Başlık Üretici',
+    hl_desc: 'KutAI 3 farklı başlık önerecek. Kopyalamak için kartı tıklayın.',
+    hl_btn: 'Başlık Üret →',
+    hl_result: 'Başlık Seçenekleri',
+    eval_title: 'Metin Kontrolü',
+    eval_desc: 'KutAI metni TRT Russian standartlarına göre kontrol eder: terminoloji, Türkiye pozisyonu, dilbilgisi, üslup.',
+    eval_btn: 'Metni Kontrol Et →',
+    eval_result: 'Editör Kararı',
+    eval_corrected: 'Düzeltilmiş Versiyon',
+    eval_copy: 'Düzeltilmiş metni kopyala',
+    social_title: 'Sosyal Medya Metni',
+    social_desc: 'TRT Russian formatında X ve Telegram için içerik oluşturur.',
+    social_btn: 'Post Oluştur →',
+    social_result: 'Hazır Postlar',
+    toast: 'Kopyalandı ✓',
+  }
+};
+
+function setLang(lang) {
+  const L = T[lang];
+  if (!L) return;
+
+  // Butonlar
+  document.getElementById('lang-ru').classList.toggle('active', lang === 'ru');
+  document.getElementById('lang-tr').classList.toggle('active', lang === 'tr');
+  document.getElementById('btn-logout').textContent = L.logout;
+
+  // Nav
+  document.querySelectorAll('.nav-tab').forEach((t, i) => { if (L.nav[i]) t.textContent = L.nav[i]; });
+
+  // Write
+  document.querySelector('#panel-write .section-title').textContent = L.write_title;
+  document.querySelector('#panel-write .section-desc').textContent = L.write_desc;
+  document.getElementById('write-btn').textContent = L.write_btn;
+  document.querySelector('#write-result .result-label').textContent = L.write_result;
+  document.querySelector('#write-result .copy-btn').textContent = L.copy;
+
+  // Headlines
+  document.querySelector('#panel-headlines .section-title').textContent = L.hl_title;
+  document.querySelector('#panel-headlines .section-desc').textContent = L.hl_desc;
+  document.getElementById('hl-btn').textContent = L.hl_btn;
+  document.querySelector('#hl-result .result-label').textContent = L.hl_result;
+
+  // Evaluate
+  document.querySelector('#panel-evaluate .section-title').textContent = L.eval_title;
+  document.querySelector('#panel-evaluate .section-desc').textContent = L.eval_desc;
+  document.getElementById('eval-btn').textContent = L.eval_btn;
+  const evLabels = document.querySelectorAll('#eval-result .result-label');
+  if (evLabels[0]) evLabels[0].textContent = L.eval_result;
+  if (evLabels[1]) evLabels[1].textContent = L.eval_corrected;
+  document.querySelector('#eval-result .copy-btn').textContent = L.eval_copy;
+
+  // Social
+  document.querySelector('#panel-social .section-title').textContent = L.social_title;
+  document.querySelector('#panel-social .section-desc').textContent = L.social_desc;
+  document.getElementById('social-btn').textContent = L.social_btn;
+  document.querySelector('#social-result .result-label').textContent = L.social_result;
+  document.querySelector('#social-result .copy-btn').textContent = L.copy;
+
+  // Toast
+  document.getElementById('toast').textContent = L.toast;
+}
 
 // INIT
 setupCharCounter('write-brief', 'write-char', 2000);
