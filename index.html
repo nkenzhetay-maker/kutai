@@ -167,7 +167,7 @@
     letter-spacing: -1px;
   }
 
-  .header-logo span { color: var(--gold-light); }
+  .header-logo span { color: var(--red); }
 
 
   /* LANG SWITCHER */
@@ -947,21 +947,17 @@ async function generateArticle() {
 
   setLoading('write', true);
 
-  const prompt = `Напиши материал для TRT Russian.
-
-ФОРМАТ: ${formatMap[format]}
-КАТЕГОРИЯ: ${category}
-БРИФ: ${brief}
-${extra ? 'ДОПОЛНИТЕЛЬНО: ' + extra : ''}
-
-Структура ответа:
-ЗАГОЛОВОК: [заголовок]
-ПОДЗАГОЛОВОК: [подзаголовок — одна строка, суть новости]
-КАТЕГОРИЯ: ${category}
-ФОРМАТ: ${format === 'novost' ? 'Новость' : format === 'analitika' ? 'Аналитика' : 'Мнение'}
-
-ТЕКСТ:
-[готовый материал]`;
+  const prompt = 'Напиши материал для TRT Russian.\n\n'
+    + 'ФОРМАТ: ' + formatMap[format] + '\n'
+    + 'КАТЕГОРИЯ: ' + category + '\n'
+    + 'БРИФ: ' + brief + '\n'
+    + (extra ? 'ДОПОЛНИТЕЛЬНО: ' + extra + '\n' : '')
+    + '\nСтруктура ответа:\n'
+    + 'ЗАГОЛОВОК: [заголовок]\n'
+    + 'ПОДЗАГОЛОВОК: [подзаголовок]\n'
+    + 'КАТЕГОРИЯ: ' + category + '\n'
+    + 'ФОРМАТ: ' + (format === 'novost' ? 'Новость' : format === 'analitika' ? 'Аналитика' : 'Мнение') + '\n\n'
+    + 'ТЕКСТ:\n[готовый материал]';
 
   try {
     const result = await callKutAI(prompt, 2000);
@@ -993,23 +989,7 @@ async function generateHeadlines() {
 
   setLoading('hl', true);
 
-  const prompt = `Придумай 3 варианта заголовка для TRT Russian по следующей теме.
-
-ТЕМА: ${brief}
-КАТЕГОРИЯ: ${category}
-СТИЛЬ: ${toneMap[tone]}
-
-Верни ответ строго в формате JSON (только JSON, без текста вокруг):
-{
-  "headlines": [
-    {
-      "type": "МЕRAK BIRAK / SONUCU VER / ŞOK ET",
-      "title": "заголовок",
-      "subtitle": "подзаголовок — одна строка"
-    },
-    ...
-  ]
-}`;
+  const prompt = `Придумай 3 варианта заголовка для TRT Russian по следующей теме.\n\nТЕМА: ${brief}\nКАТЕГОРИЯ: ${category}\nСТИЛЬ: ${toneMap[tone]}\n\nВерни ответ строго в формате JSON (только JSON, без текста вокруг):\n{"headlines":[{"type":"МЕRAK BIRAK / SONUCU VER / ŞOK ET","title":"заголовок","subtitle":"подзаголовок"}]}`;
 
   try {
     const raw = await callKutAI(prompt, 600);
@@ -1053,26 +1033,10 @@ async function evaluateText() {
 
   setLoading('eval', true);
 
-  const prompt = `Проверь этот материал по стандартам TRT Russian. Действуй как строгий старший редактор.
-
-ТЕКСТ:
-${text.slice(0, 5000)}
-
-Верни ответ строго в формате JSON (только JSON):
-{
-  "verdict": "ОДОБРЕНО / ТРЕБУЕТ ПРАВОК / НЕ ОДОБРЕНО",
-  "score": 0-100,
-  "errors": [
-    {
-      "type": "Терминология / Позиция Турции / Грамматика / Стиль / Запрещённый нарратив / Заголовок",
-      "original": "цитата из текста",
-      "fix": "как должно быть",
-      "note": "объяснение"
-    }
-  ],
-  "ok_points": ["что сделано хорошо"],
-  "corrected_text": "полный исправленный вариант текста"
-}`;
+  const prompt = 'Проверь этот материал по стандартам TRT Russian. Действуй как строгий старший редактор.\n\n'
+    + 'ТЕКСТ:\n' + text.slice(0, 5000) + '\n\n'
+    + 'Верни ответ строго в формате JSON (только JSON):\n'
+    + '{"verdict":"ОДОБРЕНО / ТРЕБУЕТ ПРАВОК / НЕ ОДОБРЕНО","score":0,"errors":[{"type":"тип","original":"цитата","fix":"исправление","note":"объяснение"}],"ok_points":["хорошо"],"corrected_text":"исправленный текст"}';
 
   try {
     const raw = await callKutAI(prompt, 3000);
@@ -1133,20 +1097,12 @@ async function generateSocial() {
     telegram: 'только Telegram — 500–800 символов, можно эмодзи для акцентов'
   };
 
-  const prompt = `Напиши пост(ы) для соцсетей TRT Russian.
-
-ТЕМА/МАТЕРИАЛ: ${text.slice(0, 2000)}
-ПЛАТФОРМА: ${platformMap[platform]}
-КАТЕГОРИЯ: ${category}
-
-Правила:
-- Тон официальный, но живой
-- Никакого тяжёлого новостного канцелярита
-- Первая строка = крючок, заставляющий читать дальше
-- Соблюдать всю обязательную терминологию TRT Russian
-- Не ставить хэштеги если не просят
-
-Дай готовые тексты, чётко разделив платформы.`;
+  const prompt = 'Напиши посты для соцсетей TRT Russian.\n\n'
+    + 'ТЕМА: ' + text.slice(0, 2000) + '\n'
+    + 'ПЛАТФОРМА: ' + platformMap[platform] + '\n'
+    + 'КАТЕГОРИЯ: ' + category + '\n\n'
+    + 'Правила: официальный но живой тон, первая строка - крючок, терминология TRT Russian, без хэштегов.\n'
+    + 'Раздели тексты по платформам.';
 
   try {
     const result = await callKutAI(prompt, 800);
@@ -1267,7 +1223,7 @@ const T = {
     hl_btn: 'Başlık Üret →',
     hl_result: 'Başlık Seçenekleri',
     eval_title: 'Metin Kontrolü',
-    eval_desc: 'KutAI metni TRT Russian standartlarına göre kontrol eder: terminoloji, Türkiye pozisyonu, dilbilgisi, üslup.',
+    eval_desc: "KutAI metni TRT Russian standartlarına göre kontrol eder: terminoloji, Türkiye pozisyonu, dilbilgisi, üslup.",
     eval_btn: 'Metni Kontrol Et →',
     eval_result: 'Editör Kararı',
     eval_corrected: 'Düzeltilmiş Versiyon',
@@ -1279,26 +1235,26 @@ const T = {
     toast: 'Kopyalandı ✓',
     lbl_format: 'Materyal Formatı',
     lbl_category: 'Kategori',
-    lbl_brief: 'Konu özeti / brief',
-    lbl_extra: 'Ek bilgi veya alıntılar (isteğe bağlı)',
-    ph_brief: 'Örnek: İsrail Gazze'deki hastaneye saldırdı. 40 ölü. Türkiye kınadı...',
-    ph_extra: 'Yetkili açıklaması, istatistik, kaynak bağlantısı...',
-    lbl_news: 'Haber ne hakkında?',
-    ph_news: 'Örnek: İsrail ordusu Sümud filosunu uluslararası sularda durdurdu...',
+    lbl_brief: 'Konu ozeti / brief',
+    lbl_extra: 'Ek bilgi veya alıntılar (istege bagli)',
+    ph_brief: 'Ornek: Israil Gazze\u2019deki hastaneye saldırdı. 40 olu. Turkiye kınadı...',
+    ph_extra: 'Yetkili aciklamasi, istatistik, kaynak baglantisi...',
+    lbl_news: 'Haber ne hakkinda?',
+    ph_news: 'Ornek: Israil ordusu Sumud filosunu uluslararasi sularda durdurdu...',
     lbl_tone: 'Ton',
     lbl_eval_text: 'Kontrol edilecek metin',
-    ph_eval: 'Serbest çalışanın metnini veya taslağınızı yapıştırın...',
-    lbl_social_text: 'Konu veya hazır makale',
-    ph_social: 'Konu özetini veya makaleyi yapıştırın...',
+    ph_eval: 'Serbest calisanin metnini veya taslaginizi yapistirin...',
+    lbl_social_text: 'Konu veya hazir makale',
+    ph_social: 'Konu ozetini veya makaleyi yapistirin...',
     lbl_platform: 'Platform',
-    loading_write: 'Editör düşünüyor...',
-    loading_hl: 'Başlıklar hazırlanıyor...',
-    loading_eval: 'Editör okuyor...',
-    loading_social: 'Postlar hazırlanıyor...',
-    formats: ['Haber (3–5 paragraf)', 'Analiz (700–1000 kelime)', 'Yorum / Köşe'],
-    tones: ['Otomatik (KutAI seçer)', 'Merak bırak — merak', 'Sonucu ver — sonuç', 'Şok et — şok'],
-    platforms: ['X + Telegram (ikisi)', 'X (Twitter) — maks 280 karakter', 'Telegram — genişletilmiş'],
-    categories: ['Politika', 'Gazze Savaşı', 'Ukrayna Savaşı', 'Türkiye', 'Türk Dünyası', 'İran', 'Suriye', 'Afrika', 'Savunma Sanayii', 'Ekonomi', 'Özel Materyal'],
+    loading_write: 'Editor dusunuyor...',
+    loading_hl: 'Basliklar hazirlaniyor...',
+    loading_eval: 'Editor okuyor...',
+    loading_social: 'Postlar hazirlaniyor...',
+    formats: ['Haber (3-5 paragraf)', 'Analiz (700-1000 kelime)', 'Yorum / Kose'],
+    tones: ['Otomatik (KutAI secer)', 'Merak birak', 'Sonucu ver', 'Sok et'],
+    platforms: ['X + Telegram (ikisi)', 'X (Twitter) - maks 280 karakter', 'Telegram - genisletilmis'],
+    categories: ['Politika', 'Gazze Savasi', 'Ukrayna Savasi', 'Turkiye', 'Turk Dunyasi', 'Iran', 'Suriye', 'Afrika', 'Savunma Sanayii', 'Ekonomi', 'Ozel Materyal'],
   }
 };
 
