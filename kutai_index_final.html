@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KutAI — TRT Russian Editorial Assistant</title>
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@300;400;500;600&display=swap');
+
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --paper2: #ede8dc;
+    --red: #c0392b;
+    --red-soft: #e74c3c;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --green: #1a6b3c;
+    --border: #c8bfaa;
+    --muted: #7a7060;
+    --white: #ffffff;
+    --shadow: 0 2px 20px rgba(13,13,13,0.12);
+    --shadow-deep: 0 8px 40px rgba(13,13,13,0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(184,134,11,0.06) 28px),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8860b' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .auth-card {
+    background: var(--white);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 3rem;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute;
+    top: -12px; left: -12px; right: 12px; bottom: 12px;
+    border: 1px solid var(--gold);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .auth-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .auth-logo span { color: var(--red); }
+
+  .auth-subtitle {
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    font-weight: 500;
+  }
+
+  .auth-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--border);
+    background: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 1rem;
+  }
+
+  .auth-input:focus { border-color: var(--ink); }
+
+  .auth-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-btn:hover { background: var(--red); }
+  .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .auth-msg {
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--gold);
+    background: rgba(184,134,11,0.08);
+    color: var(--ink);
+    display: none;
+  }
+
+  .auth-msg.error { border-color: var(--red); background: rgba(192,57,43,0.08); }
+  .auth-msg.show { display: block; }
+
+  /* ── MAIN APP ── */
+  #app { display: none; min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--gold);
+  }
+
+  .header-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+  }
+
+  .header-logo span { color: var(--gold-light); }
+
+  .header-user {
+    font-size: 0.72rem;
+    color: rgba(245,240,232,0.6);
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+
+  .header-logout {
+    background: none;
+    border: 1px solid rgba(245,240,232,0.3);
+    color: rgba(245,240,232,0.7);
+    padding: 0.35rem 0.9rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    transition: all 0.15s;
+    margin-left: 1rem;
+  }
+  .header-logout:hover { background: rgba(255,255,255,0.1); color: var(--paper); }
+
+  /* NAV TABS */
+  .nav-tabs {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    padding: 0 2rem;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 1rem 1.5rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .nav-tab:hover { color: var(--ink); }
+  .nav-tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+  /* CONTENT */
+  .content { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .section-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* FORM ELEMENTS */
+  label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  textarea, select, input[type="text"] {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--border);
+    background: var(--white);
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+    margin-bottom: 1.2rem;
+  }
+
+  textarea:focus, select:focus, input[type="text"]:focus {
+    border-color: var(--ink);
+  }
+
+  select { resize: none; cursor: pointer; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+  .btn-primary {
+    padding: 1rem 2rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 3px 3px 0 var(--gold);
+  }
+
+  .btn-primary:hover { background: var(--red); box-shadow: 3px 3px 0 var(--ink); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+  .btn-secondary {
+    padding: 0.7rem 1.4rem;
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:hover { background: var(--ink); color: var(--paper); }
+
+  /* RESULT BOXES */
+  .result-box {
+    background: var(--white);
+    border: 2px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--gold);
+    padding: 2rem;
+    margin-top: 2rem;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .result-box.show { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .result-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .result-content {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.8;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+
+  /* HEADLINE CARDS */
+  .headline-grid {
+    display: grid;
+    gap: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .headline-card {
+    border: 2px solid var(--border);
+    padding: 1.5rem;
+    background: var(--paper);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .headline-card:hover {
+    border-color: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    transform: translate(-1px, -1px);
+  }
+
+  .headline-type {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.6rem;
+  }
+
+  .headline-main {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 0.4rem;
+  }
+
+  .headline-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .copy-hint {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.6rem;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.15s;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .headline-card:hover .copy-hint { opacity: 1; }
+
+  /* EVALUATION */
+  .eval-verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .eval-verdict.approved { background: rgba(26,107,60,0.12); color: var(--green); border: 2px solid var(--green); }
+  .eval-verdict.needs-edit { background: rgba(184,134,11,0.12); color: var(--gold); border: 2px solid var(--gold); }
+  .eval-verdict.rejected { background: rgba(192,57,43,0.12); color: var(--red); border: 2px solid var(--red); }
+
+  .error-block {
+    background: rgba(192,57,43,0.06);
+    border-left: 3px solid var(--red);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .error-block strong { color: var(--red); display: block; margin-bottom: 0.3rem; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .ok-block {
+    background: rgba(26,107,60,0.06);
+    border-left: 3px solid var(--green);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .ok-block strong { color: var(--green); display: block; margin-bottom: 0.3rem; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .loading-overlay.show { display: flex; }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* COPY TOAST */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.25s;
+    z-index: 999;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* CHAR COUNTER */
+  .char-count {
+    text-align: right;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: -1rem;
+    margin-bottom: 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .char-count.warn { color: var(--gold); }
+  .char-count.danger { color: var(--red); }
+
+  /* COPY BTN */
+  .copy-btn {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* OTP input style */
+  #otp-input {
+    letter-spacing: 0.5em;
+    font-size: 1.4rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .step { display: none; }
+  .step.active { display: block; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+
+  .info-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    background: rgba(184,134,11,0.15);
+    color: var(--gold);
+    margin-right: 0.4rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">Kut<span>AI</span></div>
+    <div class="auth-subtitle">TRT Russian · Editorial Assistant</div>
+
+    <!-- Step 1: Email -->
+    <div class="step active" id="step-email">
+      <label class="auth-label">Рабочий email</label>
+      <input type="text" class="auth-input" id="email-input" placeholder="name@trt.net.tr" autocomplete="off">
+      <button class="auth-btn" id="send-otp-btn" onclick="sendOTP()">Получить код →</button>
+      <div class="auth-msg" id="email-msg"></div>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div class="step" id="step-otp">
+      <label class="auth-label">Код подтверждения</label>
+      <input type="text" class="auth-input" id="otp-input" placeholder="000000" maxlength="6" autocomplete="off">
+      <button class="auth-btn" id="verify-otp-btn" onclick="verifyOTP()">Войти →</button>
+      <div class="auth-msg" id="otp-msg"></div>
+      <button onclick="goBackToEmail()" style="background:none;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;margin-top:1rem;font-family:'Manrope',sans-serif;">← Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header class="header">
+    <div class="header-logo">Kut<span>AI</span></div>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <div class="header-user" id="header-user"></div>
+      <button class="header-logout" onclick="logout()">Выйти</button>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('write', this)">✍️ Написать</button>
+    <button class="nav-tab" onclick="switchTab('headlines', this)">📰 Заголовки</button>
+    <button class="nav-tab" onclick="switchTab('evaluate', this)">🔍 Проверить текст</button>
+    <button class="nav-tab" onclick="switchTab('social', this)">📲 Соцсети</button>
+  </nav>
+
+  <div class="content">
+
+    <!-- ══ PANEL 1: НАПИСАТЬ ══ -->
+    <div class="panel active" id="panel-write">
+      <div class="section-header">
+        <div class="section-title">Написать материал</div>
+        <div class="section-desc">Опишите тему — KutAI напишет готовый материал в стиле TRT Russian.</div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label>Формат материала</label>
+          <select id="write-format">
+            <option value="novost">Новость (3–5 абзацев)</option>
+            <option value="analitika">Аналитика (с подзаголовками, 700–1000 слов)</option>
+            <option value="mnenie">Мнение / колонка</option>
+          </select>
+        </div>
+        <div>
+          <label>Категория</label>
+          <select id="write-category">
+            <option value="Политика">Политика</option>
+            <option value="Война в Газе">Война в Газе</option>
+            <option value="Война в Украине">Война в Украине</option>
+            <option value="Турция">Турция</option>
+            <option value="Тюркский мир">Тюркский мир</option>
+            <option value="Иран">Иран</option>
+            <option value="Сирия">Сирия</option>
+            <option value="Африка">Африка</option>
+            <option value="Оборонная промышленность">Оборонная промышленность</option>
+            <option value="Экономика">Экономика</option>
+            <option value="Особый материал">Особый материал</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Краткое описание темы / бриф</label>
+      <textarea id="write-brief" rows="5" placeholder="Например: Израиль нанёс удар по больнице в Газе. 40 погибших. Турция осудила. Реакция международного сообщества..."></textarea>
+      <div class="char-count" id="write-char">0 / 2000</div>
+
+      <label>Дополнительные факты или цитаты (необязательно)</label>
+      <textarea id="write-extra" rows="3" placeholder="Цитата официального лица, статистика, ссылка на источник..."></textarea>
+
+      <button class="btn-primary" id="write-btn" onclick="generateArticle()">Написать материал →</button>
+
+      <div class="loading-overlay" id="write-loading">
+        <div class="spinner"></div>
+        Редактор думает...
+      </div>
+
+      <div class="result-box" id="write-result">
+        <div class="result-label">Готовый материал</div>
+        <div class="result-content" id="write-output"></div>
+        <button class="copy-btn" onclick="copyResult('write-output')">Скопировать</button>
+      </div>
+    </div>
+
+    <!-- ══ PANEL 2: ЗАГОЛОВКИ ══ -->
+    <div class="panel" id="panel-headlines">
+      <div class="section-header">
+        <div class="section-title">Генератор заголовков</div>
+        <div class="section-desc">KutAI предложит 3 варианта заголовка в разных стилях. Нажмите на карточку, чтобы скопировать.</div>
+      </div>
+
+      <label>О чём новость?</label>
+      <textarea id="hl-brief" rows="4" placeholder="Например: Израильские военные задержали участников флотилии «Сумуд» в международных водах. Турция вызвала посла..."></textarea>
+
+      <div class="form-row">
+        <div>
+          <label>Тональность</label>
+          <select id="hl-tone">
+            <option value="auto">Авто (KutAI выбирает)</option>
+            <option value="intrigue">Меrak bırak — интрига</option>
+            <option value="result">Sonucu ver — результат</option>
+            <option value="shock">Şok et — шок</option>
+          </select>
+        </div>
+        <div>
+          <label>Категория</label>
+          <select id="hl-category">
+            <option value="Политика">Политика</option>
+            <option value="Война в Газе">Война в Газе</option>
+            <option value="Война в Украине">Война в Украине</option>
+            <option value="Турция">Турция</option>
+            <option value="Тюркский мир">Тюркский мир</option>
+            <option value="Иран">Иран</option>
+            <option value="Сирия">Сирия</option>
+            <option value="Африка">Африка</option>
+            <option value="Оборонная промышленность">Оборонная промышленность</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="hl-btn" onclick="generateHeadlines()">Сгенерировать заголовки →</button>
+
+      <div class="loading-overlay" id="hl-loading">
+        <div class="spinner"></div>
+        Подбираем заголовки...
+      </div>
+
+      <div class="result-box" id="hl-result">
+        <div class="result-label">Варианты заголовков</div>
+        <div class="headline-grid" id="hl-cards"></div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL 3: ПРОВЕРИТЬ ТЕКСТ ══ -->
+    <div class="panel" id="panel-evaluate">
+      <div class="section-header">
+        <div class="section-title">Проверка текста</div>
+        <div class="section-desc">KutAI проверит материал по стандартам TRT Russian: терминология, позиция Турции, грамматика, стиль.</div>
+      </div>
+
+      <label>Текст для проверки</label>
+      <textarea id="eval-text" rows="12" placeholder="Вставьте готовый материал фрилансера или свой черновик..."></textarea>
+      <div class="char-count" id="eval-char">0 / 6000</div>
+
+      <button class="btn-primary" id="eval-btn" onclick="evaluateText()">Проверить текст →</button>
+
+      <div class="loading-overlay" id="eval-loading">
+        <div class="spinner"></div>
+        Редактор читает...
+      </div>
+
+      <div class="result-box" id="eval-result">
+        <div class="result-label">Заключение редактора</div>
+        <div id="eval-verdict-box"></div>
+        <div id="eval-output"></div>
+        <hr class="divider">
+        <div class="result-label">Исправленный вариант</div>
+        <div class="result-content" id="eval-corrected"></div>
+        <button class="copy-btn" onclick="copyResult('eval-corrected')">Скопировать исправленный текст</button>
+      </div>
+    </div>
+
+    <!-- ══ PANEL 4: СОЦСЕТИ ══ -->
+    <div class="panel" id="panel-social">
+      <div class="section-header">
+        <div class="section-title">Текст для соцсетей</div>
+        <div class="section-desc">Адаптация материала под X (Twitter) и Telegram в формате TRT Russian.</div>
+      </div>
+
+      <label>Тема или готовый материал</label>
+      <textarea id="social-text" rows="6" placeholder="Вставьте краткое описание темы или готовую статью..."></textarea>
+
+      <div class="form-row">
+        <div>
+          <label>Платформа</label>
+          <select id="social-platform">
+            <option value="both">X + Telegram (оба)</option>
+            <option value="twitter">X (Twitter) — до 280 символов</option>
+            <option value="telegram">Telegram — развёрнуто</option>
+          </select>
+        </div>
+        <div>
+          <label>Категория</label>
+          <select id="social-category">
+            <option value="Политика">Политика</option>
+            <option value="Война в Газе">Война в Газе</option>
+            <option value="Война в Украине">Война в Украине</option>
+            <option value="Турция">Турция</option>
+            <option value="Тюркский мир">Тюркский мир</option>
+            <option value="Иран">Иран</option>
+            <option value="Оборонная промышленность">Оборонная промышленность</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="social-btn" onclick="generateSocial()">Создать посты →</button>
+
+      <div class="loading-overlay" id="social-loading">
+        <div class="spinner"></div>
+        Готовим посты...
+      </div>
+
+      <div class="result-box" id="social-result">
+        <div class="result-label">Готовые посты</div>
+        <div class="result-content" id="social-output"></div>
+        <button class="copy-btn" onclick="copyResult('social-output')">Скопировать</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<div class="toast" id="toast">Скопировано ✓</div>
+
+<script>
+// ════════════════════════════════
+// CONFIG
+// ════════════════════════════════
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+
+const ALLOWED_EMAILS = [
+  "nkenzhetay@trt.net.tr",
+  "trtrussian@trt.net.tr"
+  // Buraya izinli emailler eklenecek
+];
+
+const EMAILJS_SERVICE = "YOUR_SERVICE_ID";
+const EMAILJS_TEMPLATE = "YOUR_TEMPLATE_ID";
+
+let currentOTP = null;
+let currentEmail = null;
+
+// ════════════════════════════════
+// AUTH
+// ════════════════════════════════
+function checkAuth() {
+  const token = localStorage.getItem('kutai_token');
+  const email = localStorage.getItem('kutai_email');
+  const expiry = localStorage.getItem('kutai_expiry');
+  if (token && email && expiry && Date.now() < parseInt(expiry)) {
+    showApp(email);
+    return true;
+  }
+  return false;
+}
+
+function sendOTP() {
+  const email = document.getElementById('email-input').value.trim().toLowerCase();
+  const msg = document.getElementById('email-msg');
+
+  if (!email) return showMsg(msg, 'Введите email', 'error');
+  if (!ALLOWED_EMAILS.includes(email)) return showMsg(msg, 'Этот email не авторизован', 'error');
+
+  currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  currentEmail = email;
+
+  document.getElementById('send-otp-btn').disabled = true;
+  showMsg(msg, 'Отправляем код...', '');
+
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+    to_email: email,
+    otp_code: currentOTP,
+    product_name: 'KutAI'
+  }).then(() => {
+    showMsg(msg, `Код отправлен на ${email}`, '');
+    document.getElementById('step-email').classList.remove('active');
+    document.getElementById('step-otp').classList.add('active');
+    document.getElementById('otp-input').focus();
+  }).catch(() => {
+    showMsg(msg, 'Ошибка отправки. Попробуйте снова.', 'error');
+    document.getElementById('send-otp-btn').disabled = false;
+  });
+}
+
+function verifyOTP() {
+  const entered = document.getElementById('otp-input').value.trim();
+  const msg = document.getElementById('otp-msg');
+
+  if (entered === currentOTP) {
+    localStorage.setItem('kutai_token', btoa(currentEmail + Date.now()));
+    localStorage.setItem('kutai_email', currentEmail);
+    localStorage.setItem('kutai_expiry', Date.now() + 30 * 60 * 1000);
+    showApp(currentEmail);
+  } else {
+    showMsg(msg, 'Неверный код. Попробуйте снова.', 'error');
+  }
+}
+
+function goBackToEmail() {
+  document.getElementById('step-otp').classList.remove('active');
+  document.getElementById('step-email').classList.add('active');
+  document.getElementById('send-otp-btn').disabled = false;
+  document.getElementById('otp-input').value = '';
+}
+
+function showApp(email) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('header-user').textContent = email;
+}
+
+function logout() {
+  localStorage.removeItem('kutai_token');
+  localStorage.removeItem('kutai_email');
+  localStorage.removeItem('kutai_expiry');
+  location.reload();
+}
+
+function showMsg(el, text, type) {
+  el.textContent = text;
+  el.className = 'auth-msg show' + (type ? ' ' + type : '');
+}
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+function switchTab(panel, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + panel).classList.add('active');
+}
+
+// ════════════════════════════════
+// API CALL — via Netlify Function (API key hidden server-side)
+// ════════════════════════════════
+async function callKutAI(userPrompt, maxTokens = 2000) {
+  const response = await fetch("/.netlify/functions/kutai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: userPrompt, maxTokens })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Function error');
+  return data.text;
+}
+
+// ════════════════════════════════
+// PANEL 1: НАПИСАТЬ
+// ════════════════════════════════
+async function generateArticle() {
+  const brief = document.getElementById('write-brief').value.trim();
+  if (!brief) return;
+
+  const format = document.getElementById('write-format').value;
+  const category = document.getElementById('write-category').value;
+  const extra = document.getElementById('write-extra').value.trim();
+
+  const formatMap = {
+    novost: 'НОВОСТЬ (3–5 абзацев, без подзаголовков, первый абзац = вся суть)',
+    analitika: 'АНАЛИТИКА (с подзаголовками, 700–1000 слов, вопрос "кто держит козырь?", экспертный разбор)',
+    mnenie: 'МНЕНИЕ/КОЛОНКА (провокационный вход, короткие хлёсткие фразы, ирония на основе фактов)'
+  };
+
+  setLoading('write', true);
+
+  const prompt = `Напиши материал для TRT Russian.
+
+ФОРМАТ: ${formatMap[format]}
+КАТЕГОРИЯ: ${category}
+БРИФ: ${brief}
+${extra ? 'ДОПОЛНИТЕЛЬНО: ' + extra : ''}
+
+Структура ответа:
+ЗАГОЛОВОК: [заголовок]
+ПОДЗАГОЛОВОК: [подзаголовок — одна строка, суть новости]
+КАТЕГОРИЯ: ${category}
+ФОРМАТ: ${format === 'novost' ? 'Новость' : format === 'analitika' ? 'Аналитика' : 'Мнение'}
+
+ТЕКСТ:
+[готовый материал]`;
+
+  try {
+    const result = await callKutAI(prompt, 2000);
+    document.getElementById('write-output').textContent = result;
+    document.getElementById('write-result').classList.add('show');
+  } catch(e) {
+    document.getElementById('write-output').textContent = 'Ошибка: ' + e.message;
+    document.getElementById('write-result').classList.add('show');
+  }
+  setLoading('write', false);
+}
+
+// ════════════════════════════════
+// PANEL 2: ЗАГОЛОВКИ
+// ════════════════════════════════
+async function generateHeadlines() {
+  const brief = document.getElementById('hl-brief').value.trim();
+  if (!brief) return;
+
+  const tone = document.getElementById('hl-tone').value;
+  const category = document.getElementById('hl-category').value;
+
+  const toneMap = {
+    auto: 'Выбери стиль сам по журналистскому чутью',
+    intrigue: 'МЕRAK BIRAK — интрига, читатель не знает развязки',
+    result: 'SONUCU VER — сразу даём результат, главный факт в заголовке',
+    shock: 'ŞOK ET — шок, скандал, разоблачение'
+  };
+
+  setLoading('hl', true);
+
+  const prompt = `Придумай 3 варианта заголовка для TRT Russian по следующей теме.
+
+ТЕМА: ${brief}
+КАТЕГОРИЯ: ${category}
+СТИЛЬ: ${toneMap[tone]}
+
+Верни ответ строго в формате JSON (только JSON, без текста вокруг):
+{
+  "headlines": [
+    {
+      "type": "МЕRAK BIRAK / SONUCU VER / ŞOK ET",
+      "title": "заголовок",
+      "subtitle": "подзаголовок — одна строка"
+    },
+    ...
+  ]
+}`;
+
+  try {
+    const raw = await callKutAI(prompt, 600);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(clean);
+
+    const container = document.getElementById('hl-cards');
+    container.innerHTML = '';
+
+    data.headlines.forEach(h => {
+      const card = document.createElement('div');
+      card.className = 'headline-card';
+      card.onclick = () => {
+        navigator.clipboard.writeText(h.title + '\n' + h.subtitle);
+        showToast();
+      };
+      card.innerHTML = `
+        <div class="headline-type">${h.type}</div>
+        <div class="headline-main">${h.title}</div>
+        <div class="headline-sub">${h.subtitle}</div>
+        <div class="copy-hint">Нажмите, чтобы скопировать</div>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('hl-result').classList.add('show');
+  } catch(e) {
+    const container = document.getElementById('hl-cards');
+    container.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">Ошибка генерации. Попробуйте снова.</div>';
+    document.getElementById('hl-result').classList.add('show');
+  }
+  setLoading('hl', false);
+}
+
+// ════════════════════════════════
+// PANEL 3: ПРОВЕРИТЬ ТЕКСТ
+// ════════════════════════════════
+async function evaluateText() {
+  const text = document.getElementById('eval-text').value.trim();
+  if (!text) return;
+
+  setLoading('eval', true);
+
+  const prompt = `Проверь этот материал по стандартам TRT Russian. Действуй как строгий старший редактор.
+
+ТЕКСТ:
+${text.slice(0, 5000)}
+
+Верни ответ строго в формате JSON (только JSON):
+{
+  "verdict": "ОДОБРЕНО / ТРЕБУЕТ ПРАВОК / НЕ ОДОБРЕНО",
+  "score": 0-100,
+  "errors": [
+    {
+      "type": "Терминология / Позиция Турции / Грамматика / Стиль / Запрещённый нарратив / Заголовок",
+      "original": "цитата из текста",
+      "fix": "как должно быть",
+      "note": "объяснение"
+    }
+  ],
+  "ok_points": ["что сделано хорошо"],
+  "corrected_text": "полный исправленный вариант текста"
+}`;
+
+  try {
+    const raw = await callKutAI(prompt, 3000);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(clean);
+
+    // Verdict
+    const vbox = document.getElementById('eval-verdict-box');
+    const vClass = data.verdict === 'ОДОБРЕНО' ? 'approved' : data.verdict === 'ТРЕБУЕТ ПРАВОК' ? 'needs-edit' : 'rejected';
+    const vIcon = data.verdict === 'ОДОБРЕНО' ? '✓' : data.verdict === 'ТРЕБУЕТ ПРАВОК' ? '⚠' : '✗';
+    vbox.innerHTML = `<div class="eval-verdict ${vClass}">${vIcon} ${data.verdict} — ${data.score}/100</div>`;
+
+    // Errors & OK
+    let html = '';
+
+    if (data.ok_points && data.ok_points.length > 0) {
+      data.ok_points.forEach(ok => {
+        html += `<div class="ok-block"><strong>✓ Хорошо</strong>${ok}</div>`;
+      });
+    }
+
+    if (data.errors && data.errors.length > 0) {
+      data.errors.forEach(err => {
+        html += `<div class="error-block">
+          <strong>✗ ${err.type}</strong>
+          <div>❌ <em>"${err.original}"</em></div>
+          <div>✓ ${err.fix}</div>
+          ${err.note ? `<div style="color:var(--muted);font-size:0.8rem;margin-top:0.4rem">${err.note}</div>` : ''}
+        </div>`;
+      });
+    }
+
+    document.getElementById('eval-output').innerHTML = html;
+    document.getElementById('eval-corrected').textContent = data.corrected_text || '';
+    document.getElementById('eval-result').classList.add('show');
+  } catch(e) {
+    document.getElementById('eval-output').innerHTML = '<div style="color:var(--red)">Ошибка анализа. Попробуйте снова.</div>';
+    document.getElementById('eval-result').classList.add('show');
+  }
+  setLoading('eval', false);
+}
+
+// ════════════════════════════════
+// PANEL 4: СОЦСЕТИ
+// ════════════════════════════════
+async function generateSocial() {
+  const text = document.getElementById('social-text').value.trim();
+  if (!text) return;
+
+  const platform = document.getElementById('social-platform').value;
+  const category = document.getElementById('social-category').value;
+
+  setLoading('social', true);
+
+  const platformMap = {
+    both: 'X (Twitter, до 280 символов) И Telegram (развёрнуто, 500–800 символов с эмодзи)',
+    twitter: 'только X (Twitter) — максимум 280 символов, без хэштегов',
+    telegram: 'только Telegram — 500–800 символов, можно эмодзи для акцентов'
+  };
+
+  const prompt = `Напиши пост(ы) для соцсетей TRT Russian.
+
+ТЕМА/МАТЕРИАЛ: ${text.slice(0, 2000)}
+ПЛАТФОРМА: ${platformMap[platform]}
+КАТЕГОРИЯ: ${category}
+
+Правила:
+- Тон официальный, но живой
+- Никакого тяжёлого новостного канцелярита
+- Первая строка = крючок, заставляющий читать дальше
+- Соблюдать всю обязательную терминологию TRT Russian
+- Не ставить хэштеги если не просят
+
+Дай готовые тексты, чётко разделив платформы.`;
+
+  try {
+    const result = await callKutAI(prompt, 800);
+    document.getElementById('social-output').textContent = result;
+    document.getElementById('social-result').classList.add('show');
+  } catch(e) {
+    document.getElementById('social-output').textContent = 'Ошибка: ' + e.message;
+    document.getElementById('social-result').classList.add('show');
+  }
+  setLoading('social', false);
+}
+
+// ════════════════════════════════
+// UTILS
+// ════════════════════════════════
+function setLoading(panel, on) {
+  const loading = document.getElementById(panel + '-loading');
+  const btn = document.getElementById(panel + '-btn');
+  loading.classList.toggle('show', on);
+  btn.disabled = on;
+}
+
+function copyResult(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => showToast());
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Char counters
+function setupCharCounter(textareaId, counterId, max) {
+  const ta = document.getElementById(textareaId);
+  const ct = document.getElementById(counterId);
+  ta.addEventListener('input', () => {
+    const len = ta.value.length;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'char-count' + (len > max * 0.9 ? ' danger' : len > max * 0.7 ? ' warn' : '');
+  });
+}
+
+// Enter key for auth
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('step-email').classList.contains('active')) sendOTP();
+    else if (document.getElementById('step-otp').classList.contains('active')) verifyOTP();
+  }
+});
+
+// INIT
+setupCharCounter('write-brief', 'write-char', 2000);
+setupCharCounter('eval-text', 'eval-char', 6000);
+checkAuth();
+</script>
+</body>
+</html>
