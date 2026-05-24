@@ -806,7 +806,7 @@
 // ════════════════════════════════
 // CONFIG
 // ════════════════════════════════
-emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+emailjs.init("VmCtNOVj83UjISimq");
 
 const ALLOWED_EMAILS = [
   "nkenzhetay@trt.net.tr",
@@ -814,14 +814,14 @@ const ALLOWED_EMAILS = [
   // Buraya izinli emailler eklenecek
 ];
 
-const EMAILJS_SERVICE = "service_mdtv5k8" ;
+const EMAILJS_SERVICE = "service_mdtv5k8";
 const EMAILJS_TEMPLATE = "template_lavno6l";
 
 let currentOTP = null;
 let currentEmail = null;
 
 // ════════════════════════════════
- emailjs.init("VmCtNOVj83UjISimq");
+// AUTH
 // ════════════════════════════════
 function checkAuth() {
   const token = localStorage.getItem('kutai_token');
@@ -830,8 +830,8 @@ function checkAuth() {
   if (token && email && expiry && Date.now() < parseInt(expiry)) {
     showApp(email);
     return true;
-  } 
-  return false; 
+  }
+  return false;
 }
 
 function sendOTP() {
