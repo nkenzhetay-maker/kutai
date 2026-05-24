@@ -1359,58 +1359,69 @@ let currentLang = 'ru';
 function setLang(lang) {
   currentLang = lang;
   const L = LANGS[lang];
-  
-  // Nav tabs
-  const tabs = document.querySelectorAll('.nav-tab');
-  L.nav.forEach((t, i) => { if(tabs[i]) tabs[i].textContent = t; });
-  
-  // Logout
-  document.getElementById('btn-logout').textContent = L.logout;
-  
+  if (!L) return;
+
   // Lang buttons
   document.getElementById('lang-ru').classList.toggle('active', lang === 'ru');
   document.getElementById('lang-tr').classList.toggle('active', lang === 'tr');
 
-  // WRITE panel
+  // Logout
+  document.getElementById('btn-logout').textContent = L.logout;
+
+  // Nav tabs
+  const tabs = document.querySelectorAll('.nav-tab');
+  const navKeys = [L.nav_write, L.nav_headlines, L.nav_evaluate, L.nav_social];
+  tabs.forEach((t, i) => { if (navKeys[i]) t.textContent = navKeys[i]; });
+
+  // WRITE
   document.querySelector('#panel-write .section-title').textContent = L.write_title;
   document.querySelector('#panel-write .section-desc').textContent = L.write_desc;
-  document.querySelector('label[for-panel="write-format"]') && null;
-  document.getElementById('write-brief').placeholder = L.write_brief_ph;
-  document.getElementById('write-extra').placeholder = L.write_extra_ph;
+  const wLabels = document.querySelectorAll('#panel-write label');
+  if (wLabels[0]) wLabels[0].textContent = L.write_format_label;
+  if (wLabels[1]) wLabels[1].textContent = L.write_category_label;
+  if (wLabels[2]) wLabels[2].textContent = L.write_brief_label;
+  if (wLabels[3]) wLabels[3].textContent = L.write_extra_label;
+  document.getElementById('write-brief').placeholder = L.write_brief_label;
   document.getElementById('write-btn').textContent = L.write_btn;
-  document.querySelector('#write-loading').childNodes[2].textContent = ' ' + L.write_loading;
-  document.querySelector('#write-result .result-label').childNodes[0].textContent = L.write_result_label;
-  document.querySelector('#write-result .copy-btn').textContent = L.write_copy;
+  document.querySelector('#write-result .result-label').textContent = L.write_result_label;
+  document.querySelector('#write-result .copy-btn').textContent = L.copy_btn;
 
-  // HEADLINES panel
+  // HEADLINES
   document.querySelector('#panel-headlines .section-title').textContent = L.hl_title;
   document.querySelector('#panel-headlines .section-desc').textContent = L.hl_desc;
-  document.getElementById('hl-brief').placeholder = L.hl_brief_ph;
+  const hlLabels = document.querySelectorAll('#panel-headlines label');
+  if (hlLabels[0]) hlLabels[0].textContent = L.hl_brief_label;
+  if (hlLabels[1]) hlLabels[1].textContent = L.hl_tone_label;
+  if (hlLabels[2]) hlLabels[2].textContent = L.hl_category_label;
   document.getElementById('hl-btn').textContent = L.hl_btn;
-  document.querySelector('#hl-loading').childNodes[2].textContent = ' ' + L.hl_loading;
-  document.querySelector('#hl-result .result-label').childNodes[0].textContent = L.hl_result_label;
+  document.querySelector('#hl-result .result-label').textContent = L.hl_result_label;
 
-  // EVAL panel
+  // EVALUATE
   document.querySelector('#panel-evaluate .section-title').textContent = L.eval_title;
   document.querySelector('#panel-evaluate .section-desc').textContent = L.eval_desc;
-  document.getElementById('eval-text').placeholder = L.eval_text_ph;
+  const evLabel = document.querySelector('#panel-evaluate label');
+  if (evLabel) evLabel.textContent = L.eval_text_label;
   document.getElementById('eval-btn').textContent = L.eval_btn;
-  document.querySelector('#eval-loading').childNodes[2].textContent = ' ' + L.eval_loading;
-  document.querySelector('#eval-result .result-label').childNodes[0].textContent = L.eval_result_label;
-  document.querySelector('#eval-result .copy-btn').textContent = L.eval_copy;
+  const evResultLabels = document.querySelectorAll('#eval-result .result-label');
+  if (evResultLabels[0]) evResultLabels[0].textContent = L.eval_result_label;
+  if (evResultLabels[1]) evResultLabels[1].textContent = L.eval_corrected_label;
+  document.querySelector('#eval-result .copy-btn').textContent = L.eval_copy_btn;
 
-  // SOCIAL panel
+  // SOCIAL
   document.querySelector('#panel-social .section-title').textContent = L.social_title;
   document.querySelector('#panel-social .section-desc').textContent = L.social_desc;
-  document.getElementById('social-text').placeholder = L.social_text_ph;
+  const sLabels = document.querySelectorAll('#panel-social label');
+  if (sLabels[0]) sLabels[0].textContent = L.social_text_label;
+  if (sLabels[1]) sLabels[1].textContent = L.social_platform_label;
+  if (sLabels[2]) sLabels[2].textContent = L.social_category_label;
   document.getElementById('social-btn').textContent = L.social_btn;
-  document.querySelector('#social-loading').childNodes[2].textContent = ' ' + L.social_loading;
-  document.querySelector('#social-result .result-label').childNodes[0].textContent = L.social_result_label;
-  document.querySelector('#social-result .copy-btn').textContent = L.social_copy;
+  document.querySelector('#social-result .result-label').textContent = L.social_result_label;
+  document.querySelector('#social-result .copy-btn').textContent = L.copy_btn;
 
   // Toast
   document.getElementById('toast').textContent = L.toast;
 }
+
 
 // INIT
 setupCharCounter('write-brief', 'write-char', 2000);
