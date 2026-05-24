@@ -558,6 +558,29 @@
     margin: 1.5rem 0;
   }
 
+
+  /* LANGUAGE SWITCHER */
+  .lang-switcher {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid rgba(245,240,232,0.3);
+    overflow: hidden;
+  }
+  .lang-btn {
+    background: none;
+    border: none;
+    color: rgba(245,240,232,0.5);
+    padding: 0.3rem 0.7rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    transition: all 0.15s;
+  }
+  .lang-btn.active { background: rgba(255,255,255,0.15); color: var(--paper); }
+  .lang-btn:hover { color: var(--paper); }
+
   .info-tag {
     display: inline-block;
     font-size: 0.65rem;
@@ -569,6 +592,32 @@
     color: var(--gold);
     margin-right: 0.4rem;
   }
+
+  /* LANGUAGE SWITCHER */
+  .lang-switcher {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .lang-btn {
+    background: none;
+    border: 1px solid rgba(245,240,232,0.3);
+    color: rgba(245,240,232,0.6);
+    padding: 0.25rem 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    transition: all 0.15s;
+    border-radius: 2px;
+  }
+  .lang-btn:hover, .lang-btn.active {
+    background: rgba(255,255,255,0.15);
+    color: var(--paper);
+    border-color: var(--gold-light);
+  }
+  .lang-btn.active { color: var(--gold-light); border-color: var(--gold-light); }
 </style>
 </head>
 <body>
@@ -602,9 +651,13 @@
 <div id="app">
   <header class="header">
     <div class="header-logo">Kut<span>AI</span></div>
-    <div style="display:flex;align-items:center;gap:0.5rem">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('ru', this)">RU</button>
+        <button class="lang-btn" onclick="setLang('tr', this)">TR</button>
+      </div>
       <div class="header-user" id="header-user"></div>
-      <button class="header-logout" onclick="logout()">Выйти</button>
+      <button class="header-logout" id="btn-logout" onclick="logout()">Выйти</button>
     </div>
   </header>
 
@@ -898,6 +951,194 @@ function logout() {
 function showMsg(el, text, type) {
   el.textContent = text;
   el.className = 'auth-msg show' + (type ? ' ' + type : '');
+}
+
+
+// ════════════════════════════════
+// DİL SİSTEMİ / ЯЗЫКОВАЯ СИСТЕМА
+// ════════════════════════════════
+const LANGS = {
+  ru: {
+    nav_write: '✍️ Написать',
+    nav_headlines: '📰 Заголовки',
+    nav_evaluate: '🔍 Проверить текст',
+    nav_social: '📲 Соцсети',
+    logout: 'Выйти',
+    write_title: 'Написать материал',
+    write_desc: 'Опишите тему — KutAI напишет готовый материал в стиле TRT Russian.',
+    write_format_label: 'Формат материала',
+    write_category_label: 'Категория',
+    write_brief_label: 'Краткое описание темы / бриф',
+    write_extra_label: 'Дополнительные факты или цитаты (необязательно)',
+    write_btn: 'Написать материал →',
+    write_loading: 'Редактор думает...',
+    write_result_label: 'Готовый материал',
+    hl_title: 'Генератор заголовков',
+    hl_desc: 'KutAI предложит 3 варианта заголовка в разных стилях. Нажмите на карточку, чтобы скопировать.',
+    hl_brief_label: 'О чём новость?',
+    hl_tone_label: 'Тональность',
+    hl_category_label: 'Категория',
+    hl_btn: 'Сгенерировать заголовки →',
+    hl_loading: 'Подбираем заголовки...',
+    hl_result_label: 'Варианты заголовков',
+    eval_title: 'Проверка текста',
+    eval_desc: 'KutAI проверит материал по стандартам TRT Russian: терминология, позиция Турции, грамматика, стиль.',
+    eval_text_label: 'Текст для проверки',
+    eval_btn: 'Проверить текст →',
+    eval_loading: 'Редактор читает...',
+    eval_result_label: 'Заключение редактора',
+    eval_corrected_label: 'Исправленный вариант',
+    eval_copy_btn: 'Скопировать исправленный текст',
+    social_title: 'Текст для соцсетей',
+    social_desc: 'Адаптация материала под X (Twitter) и Telegram в формате TRT Russian.',
+    social_text_label: 'Тема или готовый материал',
+    social_platform_label: 'Платформа',
+    social_category_label: 'Категория',
+    social_btn: 'Создать посты →',
+    social_loading: 'Готовим посты...',
+    social_result_label: 'Готовые посты',
+    copy_btn: 'Скопировать',
+    toast: 'Скопировано ✓',
+    auth_email_label: 'Рабочий email',
+    auth_get_code: 'Получить код →',
+    auth_otp_label: 'Код подтверждения',
+    auth_login: 'Войти →',
+    auth_back: '← Назад',
+    auth_sending: 'Отправляем код...',
+    auth_sent: 'Код отправлен на ',
+    auth_error_empty: 'Введите email',
+    auth_error_unauth: 'Этот email не авторизован',
+    auth_error_send: 'Ошибка отправки. Попробуйте снова.',
+    auth_error_otp: 'Неверный код. Попробуйте снова.',
+  },
+  tr: {
+    nav_write: '✍️ Yaz',
+    nav_headlines: '📰 Başlıklar',
+    nav_evaluate: '🔍 Metin Kontrol',
+    nav_social: '📲 Sosyal Medya',
+    logout: 'Çıkış',
+    write_title: 'Materyal Yaz',
+    write_desc: 'Konuyu açıklayın — KutAI TRT Russian stilinde hazır materyal yazar.',
+    write_format_label: 'Materyal Formatı',
+    write_category_label: 'Kategori',
+    write_brief_label: 'Konu özeti / brief',
+    write_extra_label: 'Ek bilgi veya alıntılar (isteğe bağlı)',
+    write_btn: 'Materyal Yaz →',
+    write_loading: 'Editör düşünüyor...',
+    write_result_label: 'Hazır Materyal',
+    hl_title: 'Başlık Üretici',
+    hl_desc: 'KutAI farklı stillerde 3 başlık önerisi sunar. Kopyalamak için kartı tıklayın.',
+    hl_brief_label: 'Haber neden bahsediyor?',
+    hl_tone_label: 'Ton',
+    hl_category_label: 'Kategori',
+    hl_btn: 'Başlık Üret →',
+    hl_loading: 'Başlıklar hazırlanıyor...',
+    hl_result_label: 'Başlık Seçenekleri',
+    eval_title: 'Metin Kontrolü',
+    eval_desc: "KutAI metni TRT Russian standartlarına göre kontrol eder: terminoloji, Türkiye pozisyonu, dilbilgisi, üslup.",
+    eval_text_label: 'Kontrol edilecek metin',
+    eval_btn: 'Metni Kontrol Et →',
+    eval_loading: 'Editör okuyor...',
+    eval_result_label: 'Editör Kararı',
+    eval_corrected_label: 'Düzeltilmiş Versiyon',
+    eval_copy_btn: 'Düzeltilmiş metni kopyala',
+    social_title: 'Sosyal Medya Metni',
+    social_desc: 'TRT Russian formatında X (Twitter) ve Telegram içeriği oluşturur.',
+    social_text_label: 'Konu veya hazır materyal',
+    social_platform_label: 'Platform',
+    social_category_label: 'Kategori',
+    social_btn: 'Post Oluştur →',
+    social_loading: 'Postlar hazırlanıyor...',
+    social_result_label: 'Hazır Postlar',
+    copy_btn: 'Kopyala',
+    toast: 'Kopyalandı ✓',
+    auth_email_label: 'İş e-postası',
+    auth_get_code: 'Kod Al →',
+    auth_otp_label: 'Doğrulama Kodu',
+    auth_login: 'Giriş →',
+    auth_back: '← Geri',
+    auth_sending: 'Kod gönderiliyor...',
+    auth_sent: 'Kod gönderildi: ',
+    auth_error_empty: 'E-posta girin',
+    auth_error_unauth: 'Bu e-posta yetkili değil',
+    auth_error_send: 'Gönderme hatası. Tekrar deneyin.',
+    auth_error_otp: 'Yanlış kod. Tekrar deneyin.',
+  }
+};
+
+let currentLang = 'ru';
+
+function setLang(lang, btn) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const t = LANGS[lang];
+
+  // Header
+  document.getElementById('btn-logout').textContent = t.logout;
+
+  // Nav tabs
+  const tabs = document.querySelectorAll('.nav-tab');
+  tabs[0].textContent = t.nav_write;
+  tabs[1].textContent = t.nav_headlines;
+  tabs[2].textContent = t.nav_evaluate;
+  tabs[3].textContent = t.nav_social;
+
+  // Panel 1 - Yaz
+  document.querySelector('#panel-write .section-title').textContent = t.write_title;
+  document.querySelector('#panel-write .section-desc').textContent = t.write_desc;
+  const wLabels = document.querySelectorAll('#panel-write label');
+  wLabels[0].textContent = t.write_format_label;
+  wLabels[1].textContent = t.write_category_label;
+  wLabels[2].textContent = t.write_brief_label;
+  wLabels[3].textContent = t.write_extra_label;
+  document.getElementById('write-btn').textContent = t.write_btn;
+  document.querySelector('#write-loading').innerHTML = '<div class="spinner"></div>' + t.write_loading;
+  document.querySelector('#write-result .result-label').textContent = t.write_result_label;
+  document.querySelector('#write-result .copy-btn').textContent = t.copy_btn;
+
+  // Panel 2 - Başlıklar
+  document.querySelector('#panel-headlines .section-title').textContent = t.hl_title;
+  document.querySelector('#panel-headlines .section-desc').textContent = t.hl_desc;
+  const hlLabels = document.querySelectorAll('#panel-headlines label');
+  hlLabels[0].textContent = t.hl_brief_label;
+  hlLabels[1].textContent = t.hl_tone_label;
+  hlLabels[2].textContent = t.hl_category_label;
+  document.getElementById('hl-btn').textContent = t.hl_btn;
+  document.querySelector('#hl-loading').innerHTML = '<div class="spinner"></div>' + t.hl_loading;
+  document.querySelector('#hl-result .result-label').textContent = t.hl_result_label;
+
+  // Panel 3 - Kontrol
+  document.querySelector('#panel-evaluate .section-title').textContent = t.eval_title;
+  document.querySelector('#panel-evaluate .section-desc').textContent = t.eval_desc;
+  document.querySelector('#panel-evaluate label').textContent = t.eval_text_label;
+  document.getElementById('eval-btn').textContent = t.eval_btn;
+  document.querySelector('#eval-loading').innerHTML = '<div class="spinner"></div>' + t.eval_loading;
+  const evalLabels = document.querySelectorAll('#eval-result .result-label');
+  evalLabels[0].textContent = t.eval_result_label;
+  evalLabels[1].textContent = t.eval_corrected_label;
+  document.querySelector('#eval-result .copy-btn').textContent = t.eval_copy_btn;
+
+  // Panel 4 - Sosyal
+  document.querySelector('#panel-social .section-title').textContent = t.social_title;
+  document.querySelector('#panel-social .section-desc').textContent = t.social_desc;
+  const sLabels = document.querySelectorAll('#panel-social label');
+  sLabels[0].textContent = t.social_text_label;
+  sLabels[1].textContent = t.social_platform_label;
+  sLabels[2].textContent = t.social_category_label;
+  document.getElementById('social-btn').textContent = t.social_btn;
+  document.querySelector('#social-loading').innerHTML = '<div class="spinner"></div>' + t.social_loading;
+  document.querySelector('#social-result .result-label').textContent = t.social_result_label;
+  document.querySelector('#social-result .copy-btn').textContent = t.copy_btn;
+
+  // Toast
+  document.getElementById('toast').textContent = t.toast;
+
+  // Auth
+  document.querySelector('.auth-label') && (document.querySelector('#step-email .auth-label').textContent = t.auth_email_label);
+  document.getElementById('send-otp-btn') && (document.getElementById('send-otp-btn').textContent = t.auth_get_code);
+  document.querySelector('#step-otp .auth-label') && (document.querySelector('#step-otp .auth-label').textContent = t.auth_otp_label);
+  document.getElementById('verify-otp-btn') && (document.getElementById('verify-otp-btn').textContent = t.auth_login);
 }
 
 // ════════════════════════════════
@@ -1195,10 +1436,170 @@ document.addEventListener('keydown', e => {
   }
 });
 
+
+// ════════════════════════════════
+// LANGUAGE SYSTEM
+// ════════════════════════════════
+const LANGS = {
+  ru: {
+    nav: ['✍️ Написать', '📰 Заголовки', '🔍 Проверить текст', '📲 Соцсети'],
+    logout: 'Выйти',
+    write_title: 'Написать материал',
+    write_desc: 'Опишите тему — KutAI напишет готовый материал в стиле TRT Russian.',
+    write_format_label: 'Формат материала',
+    write_formats: ['Новость (3–5 абзацев)', 'Аналитика (700–1000 слов)', 'Мнение / колонка'],
+    write_cat_label: 'Категория',
+    write_brief_label: 'Краткое описание темы / бриф',
+    write_brief_ph: 'Например: Израиль нанёс удар по больнице в Газе. 40 погибших. Турция осудила...',
+    write_extra_label: 'Дополнительные факты или цитаты (необязательно)',
+    write_extra_ph: 'Цитата официального лица, статистика, ссылка на источник...',
+    write_btn: 'Написать материал →',
+    write_loading: 'Редактор думает...',
+    write_result_label: 'Готовый материал',
+    write_copy: 'Скопировать',
+    hl_title: 'Генератор заголовков',
+    hl_desc: 'KutAI предложит 3 варианта заголовка. Нажмите на карточку, чтобы скопировать.',
+    hl_brief_label: 'О чём новость?',
+    hl_brief_ph: 'Например: Израильские военные задержали участников флотилии «Сумуд»...',
+    hl_tone_label: 'Тональность',
+    hl_tones: ['Авто (KutAI выбирает)', 'Меrak bırak — интрига', 'Sonucu ver — результат', 'Şok et — шок'],
+    hl_btn: 'Сгенерировать заголовки →',
+    hl_loading: 'Подбираем заголовки...',
+    hl_result_label: 'Варианты заголовков',
+    hl_copy_hint: 'Нажмите, чтобы скопировать',
+    eval_title: 'Проверка текста',
+    eval_desc: 'KutAI проверит материал по стандартам TRT Russian: терминология, позиция Турции, грамматика, стиль.',
+    eval_text_label: 'Текст для проверки',
+    eval_text_ph: 'Вставьте готовый материал фрилансера или свой черновик...',
+    eval_btn: 'Проверить текст →',
+    eval_loading: 'Редактор читает...',
+    eval_result_label: 'Заключение редактора',
+    eval_corrected_label: 'Исправленный вариант',
+    eval_copy: 'Скопировать исправленный текст',
+    social_title: 'Текст для соцсетей',
+    social_desc: 'Адаптация материала под X (Twitter) и Telegram в формате TRT Russian.',
+    social_text_label: 'Тема или готовый материал',
+    social_text_ph: 'Вставьте краткое описание темы или готовую статью...',
+    social_platform_label: 'Платформа',
+    social_platforms: ['X + Telegram (оба)', 'X (Twitter) — до 280 символов', 'Telegram — развёрнуто'],
+    social_btn: 'Создать посты →',
+    social_loading: 'Готовим посты...',
+    social_result_label: 'Готовые посты',
+    social_copy: 'Скопировать',
+    toast: 'Скопировано ✓',
+  },
+  tr: {
+    nav: ['✍️ Yaz', '📰 Başlıklar', '🔍 Metin Kontrol', '📲 Sosyal Medya'],
+    logout: 'Çıkış',
+    write_title: 'Makale Yaz',
+    write_desc: 'Konuyu açıklayın — KutAI TRT Russian stilinde hazır içerik oluştursun.',
+    write_format_label: 'İçerik Formatı',
+    write_formats: ['Haber (3–5 paragraf)', 'Analiz (700–1000 kelime)', 'Yorum / Köşe'],
+    write_cat_label: 'Kategori',
+    write_brief_label: 'Konu özeti / brief',
+    write_brief_ph: 'Örnek: İsrail Gazze'deki hastaneye saldırdı. 40 ölü. Türkiye kınadı...',
+    write_extra_label: 'Ek bilgi veya alıntılar (isteğe bağlı)',
+    write_extra_ph: 'Yetkili açıklaması, istatistik, kaynak bağlantısı...',
+    write_btn: 'Makale Yaz →',
+    write_loading: 'Editör düşünüyor...',
+    write_result_label: 'Hazır İçerik',
+    write_copy: 'Kopyala',
+    hl_title: 'Başlık Üretici',
+    hl_desc: 'KutAI 3 farklı başlık önerecek. Kopyalamak için kartın üzerine tıklayın.',
+    hl_brief_label: 'Haber ne hakkında?',
+    hl_brief_ph: 'Örnek: İsrail ordusu uluslararası sularda Sümud filosunu durdurdu...',
+    hl_tone_label: 'Ton',
+    hl_tones: ['Otomatik (KutAI seçer)', 'Merak bırak — merak', 'Sonucu ver — sonuç', 'Şok et — şok'],
+    hl_btn: 'Başlık Üret →',
+    hl_loading: 'Başlıklar hazırlanıyor...',
+    hl_result_label: 'Başlık Seçenekleri',
+    hl_copy_hint: 'Kopyalamak için tıklayın',
+    eval_title: 'Metin Kontrol',
+    eval_desc: 'KutAI metni TRT Russian standartlarına göre kontrol eder: terminoloji, Türkiye pozisyonu, dil bilgisi, üslup.',
+    eval_text_label: 'Kontrol edilecek metin',
+    eval_text_ph: 'Serbest çalışanın metnini veya taslağınızı yapıştırın...',
+    eval_btn: 'Metni Kontrol Et →',
+    eval_loading: 'Editör okuyor...',
+    eval_result_label: 'Editör Değerlendirmesi',
+    eval_corrected_label: 'Düzeltilmiş Versiyon',
+    eval_copy: 'Düzeltilmiş metni kopyala',
+    social_title: 'Sosyal Medya Metni',
+    social_desc: 'TRT Russian formatında X (Twitter) ve Telegram için içerik adaptasyonu.',
+    social_text_label: 'Konu veya hazır makale',
+    social_text_ph: 'Kısa konu özetini veya makaleyi yapıştırın...',
+    social_platform_label: 'Platform',
+    social_platforms: ['X + Telegram (ikisi de)', 'X (Twitter) — maks 280 karakter', 'Telegram — genişletilmiş'],
+    social_btn: 'Post Oluştur →',
+    social_loading: 'Postlar hazırlanıyor...',
+    social_result_label: 'Hazır Postlar',
+    social_copy: 'Kopyala',
+    toast: 'Kopyalandı ✓',
+  }
+};
+
+let currentLang = 'ru';
+
+function setLang(lang) {
+  currentLang = lang;
+  const L = LANGS[lang];
+  
+  // Nav tabs
+  const tabs = document.querySelectorAll('.nav-tab');
+  L.nav.forEach((t, i) => { if(tabs[i]) tabs[i].textContent = t; });
+  
+  // Logout
+  document.getElementById('btn-logout').textContent = L.logout;
+  
+  // Lang buttons
+  document.getElementById('lang-ru').classList.toggle('active', lang === 'ru');
+  document.getElementById('lang-tr').classList.toggle('active', lang === 'tr');
+
+  // WRITE panel
+  document.querySelector('#panel-write .section-title').textContent = L.write_title;
+  document.querySelector('#panel-write .section-desc').textContent = L.write_desc;
+  document.querySelector('label[for-panel="write-format"]') && null;
+  document.getElementById('write-brief').placeholder = L.write_brief_ph;
+  document.getElementById('write-extra').placeholder = L.write_extra_ph;
+  document.getElementById('write-btn').textContent = L.write_btn;
+  document.querySelector('#write-loading').childNodes[2].textContent = ' ' + L.write_loading;
+  document.querySelector('#write-result .result-label').childNodes[0].textContent = L.write_result_label;
+  document.querySelector('#write-result .copy-btn').textContent = L.write_copy;
+
+  // HEADLINES panel
+  document.querySelector('#panel-headlines .section-title').textContent = L.hl_title;
+  document.querySelector('#panel-headlines .section-desc').textContent = L.hl_desc;
+  document.getElementById('hl-brief').placeholder = L.hl_brief_ph;
+  document.getElementById('hl-btn').textContent = L.hl_btn;
+  document.querySelector('#hl-loading').childNodes[2].textContent = ' ' + L.hl_loading;
+  document.querySelector('#hl-result .result-label').childNodes[0].textContent = L.hl_result_label;
+
+  // EVAL panel
+  document.querySelector('#panel-evaluate .section-title').textContent = L.eval_title;
+  document.querySelector('#panel-evaluate .section-desc').textContent = L.eval_desc;
+  document.getElementById('eval-text').placeholder = L.eval_text_ph;
+  document.getElementById('eval-btn').textContent = L.eval_btn;
+  document.querySelector('#eval-loading').childNodes[2].textContent = ' ' + L.eval_loading;
+  document.querySelector('#eval-result .result-label').childNodes[0].textContent = L.eval_result_label;
+  document.querySelector('#eval-result .copy-btn').textContent = L.eval_copy;
+
+  // SOCIAL panel
+  document.querySelector('#panel-social .section-title').textContent = L.social_title;
+  document.querySelector('#panel-social .section-desc').textContent = L.social_desc;
+  document.getElementById('social-text').placeholder = L.social_text_ph;
+  document.getElementById('social-btn').textContent = L.social_btn;
+  document.querySelector('#social-loading').childNodes[2].textContent = ' ' + L.social_loading;
+  document.querySelector('#social-result .result-label').childNodes[0].textContent = L.social_result_label;
+  document.querySelector('#social-result .copy-btn').textContent = L.social_copy;
+
+  // Toast
+  document.getElementById('toast').textContent = L.toast;
+}
+
 // INIT
 setupCharCounter('write-brief', 'write-char', 2000);
 setupCharCounter('eval-text', 'eval-char', 6000);
-checkAuth();
+// AUTH DISABLED FOR TESTING — re-enable by replacing showApp('test@kutai.app') with checkAuth()
+showApp('test@kutai.app');
 </script>
 </body>
 </html>
