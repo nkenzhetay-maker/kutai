@@ -2,7 +2,8 @@ const SOURCES = [
   {
     name: 'TRT World',
     id: 'trt',
-    url: 'https://www.trtworld.com/rss'
+    // Google News RSS for TRT World articles
+    url: 'https://news.google.com/rss/search?q=site:trtworld.com&hl=en-US&gl=US&ceid=US:en'
   },
   {
     name: 'AA',
@@ -12,7 +13,13 @@ const SOURCES = [
   {
     name: 'Reuters',
     id: 'reuters',
-    url: 'https://feeds.reuters.com/reuters/worldNews'
+    // Google News RSS for Reuters - official feed was discontinued
+    url: 'https://news.google.com/rss/search?q=when:24h+allinurl:reuters.com+world&hl=en-US&gl=US&ceid=US:en'
+  },
+  {
+    name: 'Al Jazeera',
+    id: 'aljazeera',
+    url: 'https://www.aljazeera.com/xml/rss/all.xml'
   }
 ];
 
@@ -55,9 +62,9 @@ function parseRSS(xml, source) {
     
     const isUrgent = PRIORITY_KEYWORDS.some(kw => text.includes(kw));
     
-    // Reuters: filter more strictly — only take if matches our topics
-    if (source.id === 'reuters') {
-      const strictTopics = ['gaza', 'ukraine', 'erdogan', 'turkey', 'trump', 'iran', 'israel', 'russia'];
+    // Reuters & Al Jazeera: filter strictly — only our priority topics
+    if (source.id === 'reuters' || source.id === 'aljazeera') {
+      const strictTopics = ['gaza', 'ukraine', 'erdogan', 'turkey', 'turkish', 'trump', 'iran', 'israel', 'russia', 'hamas', 'palestine', 'middle east', 'arab'];
       const isStrictMatch = strictTopics.some(kw => text.includes(kw));
       if (!isStrictMatch) continue;
     }
