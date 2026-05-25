@@ -123,7 +123,7 @@ exports.handler = async (event) => {
         try {
           const res = await fetch(source.url, {
             headers: { 'User-Agent': 'TRT-Russian-News-Bot/1.0' },
-            signal: AbortSignal.timeout(6000)
+            signal: AbortSignal.timeout(8000)
           });
           if (!res.ok) return;
           const xml = await res.text();
