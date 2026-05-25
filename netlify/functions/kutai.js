@@ -16,7 +16,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON" }) };
   }
 
-  const { prompt, maxTokens = 2000 } = body;
+  const { prompt, maxTokens = 2000, isFeature = false } = body;
   if (!prompt) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "No prompt" }) };
   }
@@ -85,32 +85,92 @@ exports.handler = async (event) => {
 ✓ начало колониализма [«географические открытия» ✗]
 ✓ события 1915 года [«геноцид» применительно к 1915 г. ✗]
 
+FEATURE — ОБ ЭТОМ ГОВОРЯТ (специальный формат):
+Это не новость и не колонка. Feature — объяснительная журналистика.
+
+КРИТИЧЕСКОЕ ПРАВИЛО ДЛЯ ЦИТАТ:
+✓ Только реальные, идентифицируемые люди: имя + фамилия + конкретная должность/организация
+✓ Минимум 2 цитаты, лучше 3-4 если найдёшь
+✓ Найди через web search актуальные высказывания по теме
+✗ ЗАПРЕЩЕНО: анонимные источники ("эксперт сказал", "аналитик считает")
+✗ ЗАПРЕЩЕНО: выдуманные или составные персонажи
+✗ ЗАПРЕЩЕНО: "по мнению экспертов" без конкретного имени
+Если не нашёл достаточно реальных цитат — ищи ещё. Лучше меньше цитат, чем анонимные.
+
+Структура:
+1. ЗАГОЛОВОК — метафора или неожиданный угол (не информационный)
+2. ПОДЗАГОЛОВОК — суть в одном предложении
+3. Вход — яркий факт, сцена или парадокс (2-3 абзаца, захватывает)
+4. Контекст — почему это важно сейчас (с подзаголовком)
+5. Все стороны — разные точки зрения, факты, цифры (2-3 подзаголовка)
+6. Голоса — минимум 2 реальных человека с именем, должностью, прямой цитатой
+7. Что это значит — для региона, для аудитории, для Турции
+8. Финал — сильная закрывающая фраза, не вывод-приговор
+
+Примеры заголовков feature TRT Russian:
+"Дамоклов паспорт: Кремль раздает гражданство в Приднестровье"
+"Карты, деньги, два кандидата: кто покупает политику в США?"
+"Флотилия против империи: как турецкие активисты стали главным вызовом для Израиля"
+
+ПРАВИЛО ИСТОЧНИКОВ (обязательно для всех материалов):
+В конце КАЖДОГО материала добавляй блок:
+
+ИСТОЧНИКИ:
+• [Название источника] — [краткое описание: что именно взято отсюда]
+
+Правила:
+✓ Минимум 1 источник, для аналитики и feature — минимум 2-3
+✓ Для feature — только реальные источники, найденные через web search
+✓ Формат: AA, TRT World, Reuters, Al Jazeera, официальное заявление, пресс-релиз и т.д.
+✓ Если источник — официальное лицо, укажи имя и должность
+✗ Не придумывай источники
+✗ Не пиши «по данным источников» без конкретики
+
 ПРИОРИТЕТНЫЕ ТЕМЫ:
 Газа/Палестина, Россия-Украина (нейтралитет, Турция-посредник), тюркский мир, дипломатия Эрдогана, оборонная промышленность, Сирия, Иран, Ирак, Афганистан-Пакистан, Франция-Африка, экономика Турции, Дирекция коммуникаций`;
 
   try {
+    // Feature yazıları için web search etkin — gerçek uzman alıntıları bulmak için
+    const requestBody = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: maxTokens,
+      system: KUTAI_SYSTEM,
+      messages: [{ role: "user", content: prompt }]
+    };
+
+    if (isFeature) {
+      requestBody.tools = [
+        {
+          type: "web_search_20250305",
+          name: "web_search"
+        }
+      ];
+    }
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "web-search-2025-03-05"
       },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: maxTokens,
-        system: KUTAI_SYSTEM,
-        messages: [{ role: "user", content: prompt }]
-      })
+      body: JSON.stringify(requestBody)
     });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || "API error");
 
+    // Tüm text bloklarını birleştir (web search sonuçları da dahil)
+    const fullText = (data.content || [])
+      .filter(block => block.type === "text")
+      .map(block => block.text)
+      .join("\n");
+
     return {
       statusCode: 200,
       headers: CORS,
-      body: JSON.stringify({ text: data.content[0].text })
+      body: JSON.stringify({ text: fullText || data.content[0]?.text || "" })
     };
   } catch (err) {
     return {
