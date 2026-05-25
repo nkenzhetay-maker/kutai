@@ -171,6 +171,61 @@
 
 
 
+
+  /* STATS */
+  .stat-card {
+    background: var(--white);
+    border: 2px solid var(--ink);
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: 3px 3px 0 var(--gold);
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.78rem;
+  }
+  .bar-label { width: 120px; flex-shrink: 0; color: var(--ink); font-weight: 500; }
+  .bar-track { flex: 1; height: 8px; background: var(--paper2); }
+  .bar-fill { height: 100%; background: var(--ink); transition: width 0.5s ease; }
+  .bar-count { font-size: 0.7rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; width: 24px; text-align: right; }
+  .recent-log-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .recent-log-format {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.5rem;
+    background: var(--paper2);
+    color: var(--muted);
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .recent-log-text { flex: 1; color: var(--ink); }
+  .recent-log-time { font-size: 0.65rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
   /* AGENDA & FEATURE CARDS */
   .agenda-card {
     background: var(--white);
@@ -966,6 +1021,7 @@
     <button class="nav-tab" onclick="switchTab('social', this)">📲 Соцсети</button>
     <button class="nav-tab" id="tab-agenda" onclick="switchTab('agenda', this)">📋 Повестка дня</button>
     <button class="nav-tab" id="tab-feature" onclick="switchTab('featuregen', this)">✨ Feature</button>
+    <button class="nav-tab" id="tab-stats" onclick="switchTab('stats', this)">📊 Статистика</button>
   </nav>
 
   <div class="app-layout">
@@ -986,6 +1042,7 @@
             <option value="novost">Новость (3–5 абзацев)</option>
             <option value="analitika">Аналитика (с подзаголовками, 700–1000 слов)</option>
             <option value="mnenie">Мнение / колонка</option>
+            <option value="feature">Feature (глубокий разбор темы, все стороны)</option>
           </select>
         </div>
         <div>
@@ -1002,6 +1059,7 @@
             <option value="Оборонная промышленность">Оборонная промышленность</option>
             <option value="Экономика">Экономика</option>
             <option value="Особый материал">Особый материал</option>
+            <option value="Feature — Об этом говорят">Feature — Об этом говорят</option>
           </select>
         </div>
       </div>
@@ -1188,6 +1246,56 @@
       <div id="featuregen-result" style="display:none"></div>
     </div>
 
+
+    <!-- ══ PANEL 7: СТАТИСТИКА ══ -->
+    <div class="panel" id="panel-stats">
+      <div class="section-header">
+        <div class="section-title">📊 Статистика KutAI</div>
+        <div class="section-desc">Что редакторы копируют чаще всего — и чему KutAI учится на этом.</div>
+      </div>
+
+      <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+        <button class="btn-primary" id="stats-load-btn" onclick="loadStats()">Обновить статистику →</button>
+        <button class="btn-secondary" id="stats-analyze-btn" onclick="runAnalysis()">🧠 Запустить анализ</button>
+      </div>
+
+      <div class="loading-overlay" id="stats-loading">
+        <div class="spinner"></div>
+        Загрузка данных...
+      </div>
+
+      <div id="stats-content" style="display:none">
+
+        <!-- Счётчики -->
+        <div id="stats-counters" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem"></div>
+
+        <!-- Графики -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+          <div>
+            <div class="result-label">По формату</div>
+            <div id="stats-format"></div>
+          </div>
+          <div>
+            <div class="result-label">По категории</div>
+            <div id="stats-category"></div>
+          </div>
+        </div>
+
+        <!-- Инсайт от KutAI -->
+        <div id="stats-insight-box" style="display:none">
+          <div class="result-label">🧠 Что KutAI узнал о вас</div>
+          <div id="stats-insight-text" class="result-content" style="background:var(--paper2);padding:1.5rem;border-left:3px solid var(--gold);font-size:0.85rem;line-height:1.8"></div>
+          <div id="stats-insight-meta" style="font-size:0.7rem;color:var(--muted);margin-top:0.5rem"></div>
+        </div>
+
+        <!-- Последние -->
+        <div style="margin-top:2rem">
+          <div class="result-label">Последние скопированные материалы</div>
+          <div id="stats-recent"></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
   </div><!-- /main-area -->
 
@@ -1348,11 +1456,11 @@ function switchTab(panel, btn) {
 // ════════════════════════════════
 // API CALL — via Netlify Function (API key hidden server-side)
 // ════════════════════════════════
-async function callKutAI(userPrompt, maxTokens = 2000) {
+async function callKutAI(userPrompt, maxTokens = 2000, isFeature = false) {
   const response = await fetch("/.netlify/functions/kutai", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: userPrompt, maxTokens })
+    body: JSON.stringify({ prompt: userPrompt, maxTokens, isFeature })
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Function error');
@@ -1373,7 +1481,8 @@ async function generateArticle() {
   const formatMap = {
     novost: 'НОВОСТЬ (3–5 абзацев, без подзаголовков, первый абзац = вся суть)',
     analitika: 'АНАЛИТИКА (с подзаголовками, 700–1000 слов, вопрос "кто держит козырь?", экспертный разбор)',
-    mnenie: 'МНЕНИЕ/КОЛОНКА (провокационный вход, короткие хлёсткие фразы, ирония на основе фактов)'
+    mnenie: 'МНЕНИЕ/КОЛОНКА (провокационный вход, короткие хлёсткие фразы, ирония на основе фактов)',
+    feature: 'FEATURE — ОБ ЭТОМ ГОВОРЯТ (800–1200 слов). Используй web search для поиска реальных цитат. ОБЯЗАТЕЛЬНО: минимум 2, желательно 3-4 прямые цитаты реальных людей — только с именем, фамилией и конкретной должностью. ЗАПРЕЩЕНО: анонимные источники, выдуманные персонажи, обобщения типа "эксперты считают". Структура: яркий вход → контекст → все стороны → голоса реальных людей (мин. 2) → значение для аудитории → сильный финал. Подзаголовки обязательны.'
   };
 
   setLoading('write', true);
@@ -1387,11 +1496,12 @@ async function generateArticle() {
     + 'ЗАГОЛОВОК: [заголовок]\n'
     + 'ПОДЗАГОЛОВОК: [подзаголовок]\n'
     + 'КАТЕГОРИЯ: ' + category + '\n'
-    + 'ФОРМАТ: ' + (format === 'novost' ? 'Новость' : format === 'analitika' ? 'Аналитика' : 'Мнение') + '\n\n'
+    + 'ФОРМАТ: ' + (format === 'novost' ? 'Новость' : format === 'analitika' ? 'Аналитика' : format === 'feature' ? 'Feature' : 'Мнение') + '\n\n'
     + 'ТЕКСТ:\n[готовый материал]';
 
+  const isFeature = format === 'feature';
   try {
-    const result = await callKutAI(prompt, 2000);
+    const result = await callKutAI(prompt, isFeature ? 3000 : 2000, isFeature);
     document.getElementById('write-output').textContent = result;
     document.getElementById('write-result').classList.add('show');
   } catch(e) {
@@ -1556,10 +1666,7 @@ function setLoading(panel, on) {
   if (btn) btn.disabled = on;
 }
 
-function copyResult(id) {
-  const text = document.getElementById(id).textContent;
-  navigator.clipboard.writeText(text).then(() => showToast());
-}
+// copyResult defined in stats section above
 
 function showToast() {
   const t = document.getElementById('toast');
@@ -1597,7 +1704,7 @@ document.addEventListener('keydown', e => {
 const T = {
   ru: {
     logout: 'Выйти',
-    nav: ['✍️ Написать', '📰 Заголовки', '🔍 Проверить текст', '📲 Соцсети', '📋 Повестка дня', '✨ Feature'],
+    nav: ['✍️ Написать', '📰 Заголовки', '🔍 Проверить текст', '📲 Соцсети', '📋 Повестка дня', '✨ Feature', '📊 Статистика'],
     write_title: 'Написать материал',
     write_desc: 'Опишите тему — KutAI напишет готовый материал в стиле TRT Russian.',
     write_btn: 'Написать материал →',
@@ -1640,14 +1747,14 @@ const T = {
     loading_hl: 'Подбираем заголовки...',
     loading_eval: 'Редактор читает...',
     loading_social: 'Готовим посты...',
-    formats: ['Новость (3–5 абзацев)', 'Аналитика (700–1000 слов)', 'Мнение / колонка'],
+    formats: ['Новость (3–5 абзацев)', 'Аналитика (700–1000 слов)', 'Мнение / колонка', 'Feature (глубокий разбор)'],
     tones: ['Авто (KutAI выбирает)', 'Меrak bırak — интрига', 'Sonucu ver — результат', 'Şok et — шок'],
     platforms: ['X + Telegram (оба)', 'X (Twitter) — до 280 символов', 'Telegram — развёрнуто'],
     categories: ['Политика', 'Война в Газе', 'Война в Украине', 'Турция', 'Тюркский мир', 'Иран', 'Сирия', 'Африка', 'Оборонная промышленность', 'Экономика', 'Особый материал'],
   },
   tr: {
     logout: 'Çıkış',
-    nav: ['✍️ Yaz', '📰 Başlıklar', '🔍 Metin Kontrol', '📲 Sosyal Medya', '📋 Günlük Ajanda', '✨ Feature'],
+    nav: ['✍️ Yaz', '📰 Başlıklar', '🔍 Metin Kontrol', '📲 Sosyal Medya', '📋 Günlük Ajanda', '✨ Feature', '📊 İstatistik'],
     write_title: 'Materyal Yaz',
     write_desc: 'Konuyu açıklayın — KutAI TRT Russian stilinde hazır materyal yazar.',
     write_btn: 'Materyal Yaz →',
@@ -1690,7 +1797,7 @@ const T = {
     loading_hl: 'Basliklar hazirlaniyor...',
     loading_eval: 'Editor okuyor...',
     loading_social: 'Postlar hazirlaniyor...',
-    formats: ['Haber (3-5 paragraf)', 'Analiz (700-1000 kelime)', 'Yorum / Kose'],
+    formats: ['Haber (3-5 paragraf)', 'Analiz (700-1000 kelime)', 'Yorum / Kose', 'Feature (derin konu analizi)'],
     tones: ['Otomatik (KutAI secer)', 'Merak birak', 'Sonucu ver', 'Sok et'],
     platforms: ['X + Telegram (ikisi)', 'X (Twitter) - maks 280 karakter', 'Telegram - genisletilmis'],
     categories: ['Politika', 'Gazze Savasi', 'Ukrayna Savasi', 'Turkiye', 'Turk Dunyasi', 'Iran', 'Suriye', 'Afrika', 'Savunma Sanayii', 'Ekonomi', 'Ozel Materyal'],
@@ -1807,6 +1914,151 @@ function setLang(lang) {
 }
 
 
+
+
+// ════════════════════════════════
+// KUTAI LOG & ÖĞrenme SİSTEMİ
+// ════════════════════════════════
+let currentCopyMeta = {};
+
+function logCopy(panel, format, category, briefPreview, headlinePreview) {
+  currentCopyMeta = { panel, format, category, briefPreview, headlinePreview };
+  fetch('/.netlify/functions/kutai-log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'log_copy',
+      panel, format, category,
+      briefPreview: (briefPreview || '').slice(0, 80),
+      headlinePreview: (headlinePreview || '').slice(0, 100)
+    })
+  }).catch(() => {});
+}
+
+function copyResult(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast();
+    // Hangi panelden kopyalandığını tespit et
+    const panel = id.includes('write') ? 'write'
+      : id.includes('hl') ? 'headlines'
+      : id.includes('eval') ? 'evaluate'
+      : id.includes('social') ? 'social' : 'other';
+    const format = document.getElementById('write-format')?.value || 'unknown';
+    const category = document.getElementById('write-category')?.value || 'unknown';
+    const brief = document.getElementById('write-brief')?.value || '';
+    const headline = el.textContent.slice(0, 100);
+    logCopy(panel, format, category, brief, headline);
+  });
+}
+
+async function loadStats() {
+  document.getElementById('stats-loading').classList.add('show');
+  document.getElementById('stats-content').style.display = 'none';
+
+  try {
+    const res = await fetch('/.netlify/functions/kutai-log');
+    const { stats, insights } = await res.json();
+
+    // Sayaçlar
+    const topFormat = Object.entries(stats.byFormat || {}).sort((a,b) => b[1]-a[1])[0];
+    const topCat = Object.entries(stats.byCategory || {}).sort((a,b) => b[1]-a[1])[0];
+    const peakHour = Object.entries(stats.byHour || {}).sort((a,b) => b[1]-a[1])[0];
+
+    document.getElementById('stats-counters').innerHTML =
+      renderStatCard(stats.total || 0, 'Всего скопировано') +
+      renderStatCard(topFormat ? topFormat[0] : '—', 'Топ формат') +
+      renderStatCard(topCat ? topCat[0].split(' ')[0] : '—', 'Топ категория') +
+      renderStatCard(peakHour ? peakHour[0] + ':00' : '—', 'Пиковый час');
+
+    // Format bars
+    renderBars('stats-format', stats.byFormat || {}, stats.total);
+    // Category bars
+    renderBars('stats-category', stats.byCategory || {}, stats.total);
+
+    // Son loglar
+    const recentEl = document.getElementById('stats-recent');
+    const recent = stats.recentLogs || [];
+    recentEl.innerHTML = recent.length === 0
+      ? '<div style="color:var(--muted);font-size:0.82rem;padding:1rem 0">Пока нет данных. Начните копировать материалы.</div>'
+      : recent.map(log => {
+          const t = new Date(log.timestamp);
+          const timeStr = t.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}) + ' ' + t.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+          return '<div class="recent-log-row">'
+            + '<span class="recent-log-format">' + (log.format || '—') + '</span>'
+            + '<span class="recent-log-text">' + (log.headlinePreview || log.briefPreview || '—') + '</span>'
+            + '<span class="recent-log-time">' + timeStr + '</span>'
+            + '</div>';
+        }).join('');
+
+    // Öğrenme içgörüsü
+    if (insights && insights.text) {
+      document.getElementById('stats-insight-box').style.display = 'block';
+      document.getElementById('stats-insight-text').textContent = insights.text;
+      const d = new Date(insights.generatedAt);
+      document.getElementById('stats-insight-meta').textContent =
+        'Анализ от ' + d.toLocaleDateString('ru-RU') + ' · на основе ' + insights.basedOnCount + ' материалов';
+    }
+
+    document.getElementById('stats-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('stats-counters').innerHTML = '<div style="color:var(--red)">Ошибка: ' + e.message + '</div>';
+    document.getElementById('stats-content').style.display = 'block';
+  }
+  document.getElementById('stats-loading').classList.remove('show');
+}
+
+function renderStatCard(value, label) {
+  return '<div class="stat-card"><div class="stat-num">' + value + '</div><div class="stat-label">' + label + '</div></div>';
+}
+
+function renderBars(containerId, obj, total) {
+  const el = document.getElementById(containerId);
+  const entries = Object.entries(obj).sort((a,b) => b[1]-a[1]).slice(0, 6);
+  const max = entries[0]?.[1] || 1;
+  el.innerHTML = entries.map(([label, count]) => {
+    const pct = Math.round(count / max * 100);
+    const shortLabel = label.length > 15 ? label.slice(0, 15) + '…' : label;
+    return '<div class="bar-row">'
+      + '<div class="bar-label">' + shortLabel + '</div>'
+      + '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>'
+      + '<div class="bar-count">' + count + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('stats-analyze-btn');
+  btn.disabled = true;
+  btn.textContent = '🧠 Анализирует...';
+
+  try {
+    const res = await fetch('/.netlify/functions/kutai-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'analyze' })
+    });
+    const data = await res.json();
+
+    if (data.insight) {
+      document.getElementById('stats-insight-box').style.display = 'block';
+      document.getElementById('stats-insight-text').textContent = data.insight.text;
+      const d = new Date(data.insight.generatedAt);
+      document.getElementById('stats-insight-meta').textContent =
+        'Анализ от ' + d.toLocaleDateString('ru-RU') + ' · на основе ' + data.insight.basedOnCount + ' материалов';
+      document.getElementById('stats-content').style.display = 'block';
+    } else {
+      alert(data.message || 'Недостаточно данных');
+    }
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🧠 Запустить анализ';
+}
 
 // ════════════════════════════════
 // ПОВЕСТКА ДНЯ / GÜNLÜK AJANDA
