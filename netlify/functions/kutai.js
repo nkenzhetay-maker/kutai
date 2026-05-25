@@ -1,4 +1,22 @@
+// Simple in-memory rate limiter (per cold start)
+const requestCounts = {};
+const RATE_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT = 20; // max 20 requests per minute per IP
+
 exports.handler = async (event) => {
+  // Rate limiting
+  const ip = event.headers?.['x-forwarded-for']?.split(',')[0] || 'unknown';
+  const now = Date.now();
+  if (!requestCounts[ip]) requestCounts[ip] = [];
+  requestCounts[ip] = requestCounts[ip].filter(t => now - t < RATE_WINDOW);
+  if (requestCounts[ip].length >= RATE_LIMIT) {
+    return {
+      statusCode: 429,
+      headers: CORS,
+      body: JSON.stringify({ error: 'Слишком много запросов. Подождите минуту.' })
+    };
+  }
+  requestCounts[ip].push(now);
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
@@ -16,9 +34,13 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON" }) };
   }
 
-  const { prompt, maxTokens = 2000, isFeature = false } = body;
+  const { prompt, isFeature = false } = body;
+  const maxTokens = isFeature ? 3000 : 2000; // cap enforced server-side
   if (!prompt) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "No prompt" }) };
+  }
+  if (prompt.length > 8000) {
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Prompt too long (max 8000 chars)" }) };
   }
 
   const KUTAI_SYSTEM = `Ты KutAI — цифровой редактор TRT Russian. Ты — воплощение журналистского опыта Магомеда Туати: 10 лет в активной медиадеятельности, высокие показатели просмотров, умение находить нужную тему и писать так, что читатель не может оторваться.
@@ -132,7 +154,7 @@ FEATURE — ОБ ЭТОМ ГОВОРЯТ (специальный формат):
   try {
     // Feature yazıları için web search etkin — gerçek uzman alıntıları bulmak için
     const requestBody = {
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: maxTokens,
       system: KUTAI_SYSTEM,
       messages: [{ role: "user", content: prompt }]
