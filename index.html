@@ -1257,6 +1257,7 @@
       <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
         <button class="btn-primary" id="stats-load-btn" onclick="loadStats()">Обновить статистику →</button>
         <button class="btn-secondary" id="stats-analyze-btn" onclick="runAnalysis()">🧠 Запустить анализ</button>
+        <button class="btn-secondary" style="border-color:var(--red);color:var(--red)" onclick="clearAllLogs()">Очистить лог</button>
       </div>
 
       <div class="loading-overlay" id="stats-loading">
@@ -1725,6 +1726,18 @@ const T = {
     social_btn: 'Создать посты →',
     social_result: 'Готовые посты',
     toast: 'Скопировано ✓',
+    stats_title: 'Статистика KutAI',
+    stats_desc: 'Что редакторы копируют чаще всего — и чему KutAI учится на этом.',
+    stats_load_btn: 'Обновить статистику →',
+    stats_analyze_btn: '🧠 Запустить анализ',
+    stats_by_format: 'ПО ФОРМАТУ',
+    stats_by_cat: 'ПО КАТЕГОРИИ',
+    stats_recent: 'Последние скопированные материалы',
+    stats_insight_label: '🧠 Что KutAI узнал о вас',
+    stats_total: 'Всего скопировано',
+    stats_top_format: 'Топ формат',
+    stats_top_cat: 'Топ категория',
+    stats_peak: 'Пиковый час',
     sidebar_title: '📡 Новостной ассистент',
     stab_urgent: 'Срочно',
     stab_daily: 'Дневные',
@@ -1775,6 +1788,18 @@ const T = {
     social_btn: 'Post Oluştur →',
     social_result: 'Hazır Postlar',
     toast: 'Kopyalandı ✓',
+    stats_title: 'KutAI İstatistikleri',
+    stats_desc: 'Editörlerin en çok kopyaladıkları — ve KutAI bundan ne öğreniyor.',
+    stats_load_btn: 'İstatistikleri Güncelle →',
+    stats_analyze_btn: '🧠 Analiz Başlat',
+    stats_by_format: 'FORMATA GÖRE',
+    stats_by_cat: 'KATEGORİYE GÖRE',
+    stats_recent: 'Son Kopyalanan Materyaller',
+    stats_insight_label: '🧠 KutAI Sizden Ne Öğrendi',
+    stats_total: 'Toplam Kopyalandı',
+    stats_top_format: 'En İyi Format',
+    stats_top_cat: 'En İyi Kategori',
+    stats_peak: 'Yoğun Saat',
     sidebar_title: '📡 Haber Asistanı',
     stab_urgent: 'Acil',
     stab_daily: 'Günlük',
@@ -1852,6 +1877,16 @@ function setLang(lang) {
   const st = document.getElementById('sidebar-title');
   if (st && L.sidebar_title) st.textContent = L.sidebar_title;
 
+  // Stats panel
+  const statsTitle = document.querySelector('#panel-stats .section-title');
+  const statsDesc = document.querySelector('#panel-stats .section-desc');
+  if (statsTitle && L.stats_title) statsTitle.textContent = L.stats_title;
+  if (statsDesc && L.stats_desc) statsDesc.textContent = L.stats_desc;
+  const loadBtn = document.getElementById('stats-load-btn');
+  const analyzeBtn = document.getElementById('stats-analyze-btn');
+  if (loadBtn && L.stats_load_btn) loadBtn.textContent = L.stats_load_btn;
+  if (analyzeBtn && L.stats_analyze_btn) analyzeBtn.textContent = L.stats_analyze_btn;
+
   // Sidebar tabs
   const su = document.getElementById('stab-urgent');
   const sd = document.getElementById('stab-daily');
@@ -1919,20 +1954,33 @@ function setLang(lang) {
 // ════════════════════════════════
 // KUTAI LOG & ÖĞrenme SİSTEMİ
 // ════════════════════════════════
+const LOG_KEY = 'kutai_usage_logs';
+const MAX_LOGS = 200;
+
+function getLogs() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveLogs(logs) {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, MAX_LOGS))); }
+  catch(e) {}
+}
+
 let currentCopyMeta = {};
 
 function logCopy(panel, format, category, briefPreview, headlinePreview) {
-  currentCopyMeta = { panel, format, category, briefPreview, headlinePreview };
-  fetch('/.netlify/functions/kutai-log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'log_copy',
-      panel, format, category,
-      briefPreview: (briefPreview || '').slice(0, 80),
-      headlinePreview: (headlinePreview || '').slice(0, 100)
-    })
-  }).catch(() => {});
+  const logs = getLogs();
+  logs.unshift({
+    timestamp: Date.now(),
+    date: new Date().toISOString(),
+    format: format || 'unknown',
+    category: category || 'unknown',
+    panel: panel || 'unknown',
+    briefPreview: (briefPreview || '').slice(0, 80),
+    headlinePreview: (headlinePreview || '').slice(0, 100)
+  });
+  saveLogs(logs);
 }
 
 function copyResult(id) {
@@ -2072,6 +2120,18 @@ async function runAnalysis() {
 
   btn.disabled = false;
   btn.textContent = '🧠 Запустить анализ';
+}
+
+function clearAllLogs() {
+  if (!confirm('Очистить весь журнал использования?')) return;
+  localStorage.removeItem(LOG_KEY);
+  localStorage.removeItem('kutai_insights');
+  document.getElementById('stats-counters').innerHTML = '';
+  document.getElementById('stats-format').innerHTML = '';
+  document.getElementById('stats-category').innerHTML = '';
+  document.getElementById('stats-recent').innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:1rem 0">Журнал очищен.</div>';
+  document.getElementById('stats-insight-box').style.display = 'none';
+  document.getElementById('stats-content').style.display = 'block';
 }
 
 // ════════════════════════════════
