@@ -1482,7 +1482,7 @@ async function generateArticle() {
     novost: 'НОВОСТЬ (3–5 абзацев, без подзаголовков, первый абзац = вся суть)',
     analitika: 'АНАЛИТИКА (с подзаголовками, 700–1000 слов, вопрос "кто держит козырь?", экспертный разбор)',
     mnenie: 'МНЕНИЕ/КОЛОНКА (провокационный вход, короткие хлёсткие фразы, ирония на основе фактов)',
-    feature: 'FEATURE — ОБ ЭТОМ ГОВОРЯТ (800–1200 слов). Используй web search для поиска реальных цитат. ОБЯЗАТЕЛЬНО: минимум 2, желательно 3-4 прямые цитаты реальных людей — только с именем, фамилией и конкретной должностью. ЗАПРЕЩЕНО: анонимные источники, выдуманные персонажи, обобщения типа "эксперты считают". Структура: яркий вход → контекст → все стороны → голоса реальных людей (мин. 2) → значение для аудитории → сильный финал. Подзаголовки обязательны.'
+    feature: 'FEATURE — ОБ ЭТОМ ГОВОРЯТ (800–1200 слов). Используй web search для поиска реальных цитат. ОБЯЗАТЕЛЬНО: минимум 2, желательно 3-4 прямые цитаты реальных людей — только с именем, фамилией и конкретной должностью. ЗАПРЕЩЕНО: анонимные источники, выдуманные персонажи, обобщения типа "эксперты считают". Структура: яркий вход → контекст → все стороны → голоса реальных людей (мин. 2) → значение для аудитории → сильный финал. Подзаголовки обязательны. В конце обязательно: ИСТОЧНИКИ: с перечислением всех источников.'
   };
 
   setLoading('write', true);
@@ -1497,7 +1497,7 @@ async function generateArticle() {
     + 'ПОДЗАГОЛОВОК: [подзаголовок]\n'
     + 'КАТЕГОРИЯ: ' + category + '\n'
     + 'ФОРМАТ: ' + (format === 'novost' ? 'Новость' : format === 'analitika' ? 'Аналитика' : format === 'feature' ? 'Feature' : 'Мнение') + '\n\n'
-    + 'ТЕКСТ:\n[готовый материал]';
+    + 'ТЕКСТ:\n[готовый материал]\n\nИСТОЧНИКИ:\n[список источников]';
 
   const isFeature = format === 'feature';
   try {
@@ -2080,36 +2080,44 @@ async function generateAgenda() {
   const prompt = 'Ты — старший редактор TRT Russian. Составь редакционный план на ' + today + '.\n\n'
     + 'Доступные новости:\n' + newsContext + '\n\n'
     + 'Выбери 5 самых важных материалов для публикации сегодня. '
-    + 'Для каждого верни JSON в таком формате (только JSON массив, без текста):\n'
-    + '[{"rank":1,"priority":"СРОЧНО","headline":"заголовок по-русски","why":"почему важно публиковать","format":"Новость/Аналитика/Соцсети","category":"категория","tags":["тег1","тег2"]}]';
+    + 'Для каждого напиши СТРОГО в формате (5 блоков через ---):\n'
+    + 'МЕСТО: [1-5]\nПРИОРИТЕТ: [СРОЧНО/ВАЖНО/ПЛАНОВОЕ]\nЗАГОЛОВОК: [заголовок]\nПОЧЕМУ: [1 предложение]\nФОРМАТ: [Новость/Аналитика]\nКАТЕГОРИЯ: [категория]\n---';  
 
   try {
-    const raw = await callKutAI(prompt, 1500);
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const items = JSON.parse(clean);
+    const raw = await callKutAI(prompt, 1800);
+    const blocks = raw.split('---').map(b => b.trim()).filter(b => b.length > 20);
 
     const now = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
-    document.getElementById('agenda-meta').textContent = 'Обновлено в ' + now + ' · ' + items.length + ' материалов';
+    document.getElementById('agenda-meta').textContent = 'Обновлено в ' + now + ' · ' + blocks.length + ' материалов';
 
     const container = document.getElementById('agenda-result');
-    container.innerHTML = items.map(item => {
-      const pClass = item.rank === 1 ? 'priority-1' : item.rank <= 3 ? 'priority-2' : 'priority-3';
-      const tags = (item.tags || []).map(t => '<span class="agenda-tag">' + t + '</span>').join('');
+    container.innerHTML = blocks.map((block, idx) => {
+      const get = (key) => {
+        const match = block.match(new RegExp(key + ':\\s*(.+)', 'i'));
+        return match ? match[1].trim() : '';
+      };
+      const rank = parseInt(get('МЕСТО')) || (idx + 1);
+      const priority = get('ПРИОРИТЕТ') || 'ПЛАНОВОЕ';
+      const headline = get('ЗАГОЛОВОК');
+      const why = get('ПОЧЕМУ');
+      const format = get('ФОРМАТ');
+      const category = get('КАТЕГОРИЯ');
+      if (!headline) return '';
+      const pClass = rank === 1 ? 'priority-1' : rank <= 3 ? 'priority-2' : 'priority-3';
       return '<div class="agenda-card">'
-        + '<span class="agenda-priority ' + pClass + '">' + (item.priority || '№' + item.rank) + '</span>'
-        + '<span class="agenda-num">' + item.rank + '</span>'
-        + '<div class="agenda-headline">' + item.headline + '</div>'
-        + '<div class="agenda-why">' + item.why + '</div>'
+        + '<span class="agenda-priority ' + pClass + '">' + priority + '</span>'
+        + '<span class="agenda-num">' + rank + '</span>'
+        + '<div class="agenda-headline">' + headline + '</div>'
+        + (why ? '<div class="agenda-why">' + why + '</div>' : '')
         + '<div class="agenda-tags">'
-        + '<span class="agenda-tag" style="background:var(--paper);border:1px solid var(--border)">' + item.format + '</span>'
-        + '<span class="agenda-tag" style="background:var(--paper);border:1px solid var(--border)">' + item.category + '</span>'
-        + tags
+        + (format ? '<span class="agenda-tag" style="background:var(--paper);border:1px solid var(--border)">' + format + '</span>' : '')
+        + (category ? '<span class="agenda-tag" style="background:var(--paper);border:1px solid var(--border)">' + category + '</span>' : '')
         + '</div>'
         + '<div class="agenda-action">'
-        + '<button class="btn-small btn-small-dark" onclick="useAgendaItem(' + JSON.stringify(item.headline).replace(/"/g, '&quot;') + ')">Написать →</button>'
+        + '<button class="btn-small btn-small-dark" onclick="useAgendaItem(' + JSON.stringify(headline).replace(/"/g, '&quot;') + ')">Написать →</button>'
         + '</div>'
         + '</div>';
-    }).join('');
+    }).filter(h => h).join('');
     container.style.display = 'block';
   } catch(e) {
     document.getElementById('agenda-meta').textContent = 'Ошибка: ' + e.message;
@@ -2135,35 +2143,52 @@ async function generateFeatureIdeas() {
   document.getElementById('featuregen-result').style.display = 'none';
 
   const focus = document.getElementById('feature-focus').value.trim();
-  const newsContext = allNewsItems.slice(0, 10).map(i => (i.titleRu || i.title)).join('; ');
+  const newsContext = allNewsItems.slice(0, 8).map(i => (i.titleRu || i.title)).join('; ');
 
-  const prompt = 'Ты — старший редактор TRT Russian. Предложи 4 темы для развёрнутых feature-материалов.\n\n'
+  // Simple numbered format — no JSON, no truncation risk
+  const prompt = 'Ты — старший редактор TRT Russian. Предложи 4 темы для feature-материалов.\n\n'
     + 'Текущая повестка: ' + (newsContext || 'общая международная повестка') + '\n'
-    + (focus ? 'Фокус: ' + focus + '\n' : '')
-    + '\nКаждый feature должен быть актуальным, глубоким и интересным русскоязычной аудитории, '
-    + 'соответствовать редакционным приоритетам TRT Russian.\n\n'
-    + 'Верни JSON массив (только JSON):\n'
-    + '[{"title":"заголовок","hook":"почему читатель не сможет пройти мимо","angle":"уникальный угол подачи","sources":["источник1","источник2"],"category":"категория","readtime":"X мин"}]';
+    + (focus ? 'Фокус редактора: ' + focus + '\n' : '')
+    + '\nДля каждой темы напиши СТРОГО в таком формате (4 блока, разделённых ---):' 
+    + '\n\nЗАГОЛОВОК: [заголовок в стиле TRT Russian]'
+    + '\nХУК: [одно предложение — почему читатель не пройдёт мимо]'
+    + '\nУГОЛ: [уникальный угол подачи]'
+    + '\nКАТЕГОРИЯ: [категория]'
+    + '\nВРЕМЯ: [X мин]'
+    + '\n---';
 
   try {
-    const raw = await callKutAI(prompt, 1200);
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const ideas = JSON.parse(clean);
+    const raw = await callKutAI(prompt, 1800);
+    const blocks = raw.split('---').map(b => b.trim()).filter(b => b.length > 20);
 
     const container = document.getElementById('featuregen-result');
-    container.innerHTML = ideas.map(idea => {
-      const srcs = (idea.sources || []).map(s => '<span style="font-size:0.65rem;color:var(--muted)">' + s + '</span>').join(' · ');
-      return '<div class="feature-idea-card" onclick="useFeatureIdea(' + JSON.stringify(idea.title).replace(/"/g, '&quot;') + ',' + JSON.stringify(idea.hook).replace(/"/g, '&quot;') + ')">'
-        + '<div class="feature-idea-title">' + idea.title + '</div>'
-        + '<div class="feature-idea-hook">' + idea.hook + '</div>'
-        + '<div style="font-size:0.8rem;color:var(--ink);margin-bottom:0.5rem;font-style:italic">' + idea.angle + '</div>'
-        + '<div class="feature-idea-meta">'
-        + '<span>' + idea.category + '</span>'
-        + '<span>' + (idea.readtime || '7 мин') + '</span>'
-        + (srcs ? '<span>' + srcs + '</span>' : '')
-        + '</div>'
-        + '</div>';
-    }).join('');
+    if (blocks.length === 0) {
+      container.innerHTML = '<div style="color:var(--red);font-size:0.85rem">Не удалось получить темы. Попробуйте ещё раз.</div>';
+    } else {
+      container.innerHTML = blocks.map(block => {
+        const get = (key) => {
+          const match = block.match(new RegExp(key + ':\s*(.+)', 'i'));
+          return match ? match[1].trim() : '';
+        };
+        const title = get('ЗАГОЛОВОК');
+        const hook = get('ХУК');
+        const angle = get('УГОЛ');
+        const cat = get('КАТЕГОРИЯ');
+        const time = get('ВРЕМЯ');
+        if (!title) return '';
+        return '<div class="feature-idea-card" onclick="useFeatureIdea(' 
+          + JSON.stringify(title).replace(/"/g, '&quot;') + ',' 
+          + JSON.stringify(hook).replace(/"/g, '&quot;') + ')">'
+          + '<div class="feature-idea-title">' + title + '</div>'
+          + (hook ? '<div class="feature-idea-hook">' + hook + '</div>' : '')
+          + (angle ? '<div style="font-size:0.8rem;color:var(--ink);margin-bottom:0.5rem;font-style:italic">' + angle + '</div>' : '')
+          + '<div class="feature-idea-meta">'
+          + (cat ? '<span>' + cat + '</span>' : '')
+          + (time ? '<span>' + time + '</span>' : '')
+          + '</div>'
+          + '</div>';
+      }).filter(h => h).join('');
+    }
     container.style.display = 'block';
   } catch(e) {
     document.getElementById('featuregen-result').innerHTML = '<div style="color:var(--red);font-size:0.85rem">Ошибка: ' + e.message + '</div>';
