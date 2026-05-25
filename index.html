@@ -1959,9 +1959,21 @@ async function loadStats() {
   document.getElementById('stats-content').style.display = 'none';
 
   try {
-    const res = await fetch('/.netlify/functions/kutai-log');
-    const { stats, insights } = await res.json();
-
+    const logs = getLogs();
+    const stats = {
+      total: logs.length,
+      byFormat: {},
+      byCategory: {},
+      byHour: {},
+      recentLogs: logs.slice(0, 20)
+    };
+    logs.forEach(log => {
+      if (log.format) stats.byFormat[log.format] = (stats.byFormat[log.format] || 0) + 1;
+      if (log.category) stats.byCategory[log.category] = (stats.byCategory[log.category] || 0) + 1;
+      const hour = new Date(log.timestamp).getHours();
+      stats.byHour[hour] = (stats.byHour[hour] || 0) + 1;
+    });
+    const insights = JSON.parse(localStorage.getItem('kutai_insights') || 'null');
     // Sayaçlar
     const topFormat = Object.entries(stats.byFormat || {}).sort((a,b) => b[1]-a[1])[0];
     const topCat = Object.entries(stats.byCategory || {}).sort((a,b) => b[1]-a[1])[0];
@@ -2035,15 +2047,17 @@ async function runAnalysis() {
   btn.textContent = '🧠 Анализирует...';
 
   try {
+    const logs = getLogs();
     const res = await fetch('/.netlify/functions/kutai-log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'analyze' })
+      body: JSON.stringify({ action: 'analyze', logs: logs })
     });
     const data = await res.json();
 
     if (data.insight) {
       document.getElementById('stats-insight-box').style.display = 'block';
+      localStorage.setItem('kutai_insights', JSON.stringify(data.insight));
       document.getElementById('stats-insight-text').textContent = data.insight.text;
       const d = new Date(data.insight.generatedAt);
       document.getElementById('stats-insight-meta').textContent =
